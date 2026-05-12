@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kawaii Breath — Breathing Exercise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --inhale: 4600ms;
+    --exhale: 4600ms;
+    --sky-top: #aae0f5;
+    --sky-mid: #cdeef8;
+    --sky-bottom: #e6f4fa;
+    --sea: #4dc5e8;
+    --sea-deep: #2a9bb8;
+    --sand: #f5dca0;
+    --sand-deep: #e8c878;
+    --bubble: #6cc5e8;
+    --bubble-light: #cbeefa;
+    --turtle: #5cb074;
+    --turtle-shell: #8a5a3a;
+    --seal: #c5a4dc;
+    --pink: #ff95b0;
+    --gold: #ffd24a;
+    --gold-bright: #fff080;
+    --ink: #2d3a5e;
+    --purple: #8a5fb8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 9 / 19;
+    max-width: min(100vw, calc(100dvh * 9 / 19));
+    max-height: 100dvh;
+    background: linear-gradient(180deg,
+      var(--sky-top) 0%,
+      var(--sky-mid) 40%,
+      var(--sky-bottom) 55%,
+      var(--sea) 56%,
+      var(--sea-deep) 70%,
+      var(--sand-deep) 78%,
+      var(--sand) 88%,
+      var(--sand-deep) 100%);
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  }
+
+  /* ===================== SKY LAYERS ===================== */
+
+  .sun-rays {
+    position: absolute;
+    top: 28%;
+    left: 50%;
+    width: 130%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background:
+      repeating-conic-gradient(from 0deg at 50% 50%,
+        rgba(255, 250, 200, 0.06) 0deg,
+        transparent 5deg,
+        rgba(255, 250, 200, 0.09) 10deg,
+        transparent 15deg);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    animation: sunRotate 90s linear infinite;
+    mix-blend-mode: screen;
+  }
+  @keyframes sunRotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  /* Soft sun glow at the top center */
+  .sun-glow {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    aspect-ratio: 1;
+    background: radial-gradient(circle,
+      rgba(255, 240, 130, 0.3) 0%,
+      rgba(255, 220, 100, 0.15) 30%,
+      transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    animation: sunPulse 6s ease-in-out infinite alternate;
+    filter: blur(8px);
+  }
+  @keyframes sunPulse {
+    0%   { opacity: 0.7; transform: translateX(-50%) scale(1); }
+    100% { opacity: 1;   transform: translateX(-50%) scale(1.08); }
+  }
+
+  /* Drifting clouds */
+  .cloud {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    animation: cloudDrift linear infinite;
+    filter: drop-shadow(0 2px 0 rgba(100, 140, 180, 0.15));
+  }
+  @keyframes cloudDrift {
+    from { transform: translateX(-30vw); }
+    to   { transform: translateX(130vw); }
+  }
+
+  /* Twinkling sparkles */
+  .sparkles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .sparkle {
+    position: absolute;
+    color: var(--gold-bright);
+    animation: sparkleTwink ease-in-out infinite;
+    filter: drop-shadow(0 0 4px rgba(255, 220, 100, 0.6));
+  }
+  @keyframes sparkleTwink {
+    0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+    50%      { opacity: 1; transform: scale(1.2) rotate(180deg); }
+  }
+
+  /* ===================== MOUNTAINS / DISTANT ===================== */
+
+  .mountains {
+    position: absolute;
+    top: 47%;
+    left: 0; right: 0;
+    height: 12%;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .mountains svg { width: 100%; height: 100%; display: block; }
+
+  /* ===================== SEA ===================== */
+
+  .sea-shimmer {
+    position: absolute;
+    top: 56%;
+    left: 0; right: 0;
+    height: 22%;
+    pointer-events: none;
+    z-index: 4;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.15) 0%,
+      transparent 30%,
+      rgba(180, 240, 255, 0.18) 60%,
+      transparent 100%);
+    background-size: 100% 250%;
+    mix-blend-mode: screen;
+    animation: seaShimmer 9s ease-in-out infinite;
+  }
+  @keyframes seaShimmer {
+    0%, 100% { background-position: 0 0; }
+    50%      { background-position: 0 100%; }
+  }
+
+  .sea-waves {
+    position: absolute;
+    top: 56%;
+    left: 0; right: 0;
+    height: 22%;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .sea-waves svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+  .wave-line {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.7);
+    stroke-width: 2;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.6));
+    animation: waveFlow 5s ease-in-out infinite;
+  }
+  @keyframes waveFlow {
+    0%, 100% { opacity: 0;   transform: translate(0, 0); }
+    20%      { opacity: 1; }
+    50%      { opacity: 0.8; transform: translate(4px, -1px); }
+    80%      { opacity: 0.5; }
+  }
+  .wave-line.w2 { animation-delay: -1.8s; stroke-width: 1.5; }
+  .wave-line.w3 { animation-delay: -3.2s; stroke-width: 1.2; opacity: 0.6; }
+  .wave-line.w4 { animation-delay: -0.6s; stroke-width: 2.2; }
+
+  /* ===================== BEACH PLANTS ===================== */
+
+  .plants-left, .plants-right {
+    position: absolute;
+    bottom: 0;
+    height: 22%;
+    pointer-events: none;
+    z-index: 7;
+  }
+  .plants-left  { left: 0;  width: 22%; }
+  .plants-right { right: 0; width: 22%; }
+  .plants-left svg, .plants-right svg { width: 100%; height: 100%; display: block; }
+
+  /* Palm tree sway */
+  .palm-tree {
+    position: absolute;
+    bottom: 14%;
+    left: -3%;
+    height: 32%;
+    z-index: 6;
+    pointer-events: none;
+    transform-origin: bottom center;
+    animation: palmSway 4s ease-in-out infinite alternate;
+  }
+  .palm-tree svg { height: 100%; display: block; }
+  @keyframes palmSway {
+    0%   { transform: rotate(-2deg); }
+    100% { transform: rotate(2deg); }
+  }
+
+  /* Rocks + mascots */
+  .mascot-platform {
+    position: absolute;
+    height: 18%;
+    pointer-events: none;
+    z-index: 8;
+  }
+  .mascot-platform.left  { bottom: 14%; left: 4%;  width: 28%; }
+  .mascot-platform.right { bottom: 14%; right: 4%; width: 28%; }
+  .mascot-platform svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  /* Mascot bob animations */
+  .mascot-bob {
+    animation: mascotBob 2.4s ease-in-out infinite alternate;
+    transform-origin: bottom center;
+  }
+  @keyframes mascotBob {
+    0%   { transform: translateY(0)  rotate(-1deg); }
+    100% { transform: translateY(-4px) rotate(1deg); }
+  }
+
+  /* Mascot wake-up state (active during their phase) */
+  .mascot-platform .mascot-wrap { transition: transform 0.5s ease; }
+  .mascot-platform.active .mascot-wrap { transform: scale(1.1); }
+
+  /* Halo behind active mascot */
+  .mascot-halo {
+    position: absolute;
+    width: 100%;
+    aspect-ratio: 1;
+    bottom: 20%;
+    left: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(140, 240, 180, 0.7) 0%,
+      rgba(110, 220, 160, 0.35) 30%,
+      transparent 70%);
+    filter: blur(10px);
+    mix-blend-mode: screen;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+  }
+  .mascot-platform.right .mascot-halo {
+    background: radial-gradient(circle,
+      rgba(220, 180, 255, 0.8) 0%,
+      rgba(190, 150, 240, 0.4) 30%,
+      transparent 70%);
+  }
+  .mascot-platform.active .mascot-halo { opacity: 1; transform: scale(1.2); }
+
+  /* Sparkles around active mascot */
+  .mascot-sparkles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .mascot-platform.active .mascot-sparkles { opacity: 1; }
+  .ms-spark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    color: var(--gold-bright);
+    transform-origin: 0 0;
+    animation: msSpark 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 4px var(--gold));
+  }
+  @keyframes msSpark {
+    0%   { transform: translate(-4px, -4px) rotate(var(--a, 0deg)) translateX(50px) scale(0); opacity: 0; }
+    50%  { transform: translate(-4px, -4px) rotate(var(--a, 0deg)) translateX(60px) scale(1.2); opacity: 1; }
+    100% { transform: translate(-4px, -4px) rotate(var(--a, 0deg)) translateX(70px) scale(0); opacity: 0; }
+  }
+
+  /* Star burst above active mascot */
+  .wake-burst {
+    position: absolute;
+    top: -10%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, 0) scale(0);
+    color: var(--gold-bright);
+    filter: drop-shadow(0 0 6px var(--gold));
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .mascot-platform.active .wake-burst { transform: translate(-50%, 0) scale(1); animation: wakeBurstSpin 1.5s ease-out infinite; }
+  @keyframes wakeBurstSpin {
+    0%   { transform: translate(-50%, 0) scale(1) rotate(0deg); }
+    100% { transform: translate(-50%, 0) scale(1.1) rotate(360deg); }
+  }
+
+  /* ===================== BREATH ARC ===================== */
+
+  .breath-arc {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    width: 80%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    z-index: 9;
+    pointer-events: none;
+  }
+  .breath-arc svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+
+  /* Inhale label (left side of arc) */
+  .arc-label {
+    position: absolute;
+    z-index: 10;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+    text-shadow: 0 1px 4px rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .arc-label.inhale { top: 38%; left: 6%; }
+  .arc-label.exhale { top: 38%; right: 6%; flex-direction: row-reverse; }
+  .arc-label-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--gold);
+  }
+  .arc-label.exhale .arc-label-dot {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(180deg, #cbb5ef 0%, #b89ce8 100%);
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--purple);
+  }
+  .arc-label.exhale .arc-label-dot svg { width: 14px; height: 14px; }
+  .arc-label.active { transform: scale(1.12); }
+  .arc-label.dim    { opacity: 0.4; }
+
+  /* Sun marker that travels along the arc */
+  .marker-orbit {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    width: 80%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%) rotate(0deg);
+    pointer-events: none;
+    z-index: 11;
+    will-change: transform;
+  }
+  .sun-marker {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    width: 36px;
+    height: 36px;
+    margin-left: -18px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%,
+      #fffacc 0%,
+      var(--gold-bright) 40%,
+      var(--gold) 80%);
+    box-shadow:
+      0 0 18px rgba(255, 220, 100, 1),
+      0 0 36px rgba(255, 200, 80, 0.65);
+    animation: markerPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes markerPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+  }
+  .sun-marker::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--gold) 0deg, transparent 25deg,
+      var(--gold) 45deg, transparent 70deg,
+      var(--gold) 90deg, transparent 115deg,
+      var(--gold) 135deg, transparent 160deg,
+      var(--gold) 180deg, transparent 205deg,
+      var(--gold) 225deg, transparent 250deg,
+      var(--gold) 270deg, transparent 295deg,
+      var(--gold) 315deg, transparent 340deg);
+    opacity: 0.65;
+    filter: blur(2px);
+    animation: rayRotate 6s linear infinite;
+  }
+  @keyframes rayRotate { to { transform: rotate(360deg); } }
+  .sun-marker::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 240, 130, 0.4) 0%, transparent 70%);
+    filter: blur(8px);
+  }
+
+  .marker-orbit.inhaling { animation: markerToInhale var(--inhale) ease-in-out forwards; }
+  .marker-orbit.exhaling { animation: markerToExhale var(--exhale) ease-in-out forwards; }
+  @keyframes markerToInhale {
+    0%   { transform: translate(-50%, -50%) rotate(90deg);  }
+    100% { transform: translate(-50%, -50%) rotate(-90deg); }
+  }
+  @keyframes markerToExhale {
+    0%   { transform: translate(-50%, -50%) rotate(-90deg); }
+    100% { transform: translate(-50%, -50%) rotate(90deg);  }
+  }
+
+  /* ===================== BUBBLE CHARACTER ===================== */
+
+  /* Aura halo */
+  .bubble-aura {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    width: 70%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%) scale(1);
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(255, 255, 255, 0.55) 15%,
+      rgba(180, 230, 255, 0.32) 35%,
+      rgba(140, 200, 240, 0.15) 55%,
+      transparent 78%);
+    filter: blur(14px);
+    pointer-events: none;
+    mix-blend-mode: screen;
+    z-index: 8;
+    will-change: opacity, transform;
+  }
+
+  /* Bubble character SVG container */
+  .bubble-char {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    width: 50%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%) scale(1);
+    z-index: 10;
+    pointer-events: none;
+    will-change: transform, filter;
+    filter: drop-shadow(0 8px 12px rgba(50, 100, 150, 0.35));
+  }
+  .bubble-char svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+    animation: bubbleFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes bubbleFloat {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-6px); }
+  }
+
+  /* Ripples expanding outward on exhale */
+  .bubble-ripple {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    width: 50%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%) scale(0.95);
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 18px rgba(180, 230, 255, 0.6);
+    pointer-events: none;
+    z-index: 9;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* Orbiting sparkles around bubble */
+  .orbit-sparkles {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    width: 64%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 11;
+  }
+  .orbit-sparkle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    color: var(--gold-bright);
+    transform-origin: 0 0;
+    animation: orbitSpark 6s ease-in-out infinite;
+    opacity: 0;
+    filter: drop-shadow(0 0 4px var(--gold));
+  }
+  @keyframes orbitSpark {
+    0%        { transform: translate(-6px, -6px) rotate(var(--a, 0deg)) translateX(100px) scale(0); opacity: 0; }
+    15%, 85%  { opacity: 1; }
+    50%       { transform: translate(-6px, -6px) rotate(calc(var(--a, 0deg) + 90deg)) translateX(110px) scale(1.3); }
+    100%      { transform: translate(-6px, -6px) rotate(calc(var(--a, 0deg) + 180deg)) translateX(100px) scale(0); opacity: 0; }
+  }
+
+  /* Bubble breath animations */
+  .bubble-char.inhaling  { animation: bubbleShrink var(--inhale) ease-in-out forwards; }
+  .bubble-char.exhaling  { animation: bubbleGrow   var(--exhale) ease-in-out forwards; }
+  .bubble-aura.inhaling  { animation: auraShrink var(--inhale) ease-in-out forwards; }
+  .bubble-aura.exhaling  { animation: auraGrow   var(--exhale) ease-in-out forwards; }
+  @keyframes bubbleShrink {
+    0%   { transform: translate(-50%, -50%) scale(1);    filter: brightness(1)    drop-shadow(0 8px 12px rgba(50, 100, 150, 0.35)) drop-shadow(0 0 20px rgba(180, 230, 255, 0.6)); }
+    100% { transform: translate(-50%, -50%) scale(0.55); filter: brightness(0.7)  drop-shadow(0 4px 8px rgba(50, 100, 150, 0.3))  drop-shadow(0 0 4px rgba(180, 230, 255, 0.15)); }
+  }
+  @keyframes bubbleGrow {
+    0%   { transform: translate(-50%, -50%) scale(0.55); filter: brightness(0.7)  drop-shadow(0 4px 8px rgba(50, 100, 150, 0.3))  drop-shadow(0 0 4px rgba(180, 230, 255, 0.15)); }
+    100% { transform: translate(-50%, -50%) scale(1);    filter: brightness(1)    drop-shadow(0 8px 12px rgba(50, 100, 150, 0.35)) drop-shadow(0 0 20px rgba(180, 230, 255, 0.6)); }
+  }
+  @keyframes auraShrink {
+    0%   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.55); opacity: 0.25; }
+  }
+  @keyframes auraGrow {
+    0%   { transform: translate(-50%, -50%) scale(0.55); opacity: 0.25; }
+    100% { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
+  }
+  .bubble-ripple.exhaling { animation: bubbleRipple var(--exhale) ease-out forwards; }
+  .bubble-ripple.r2.exhaling { animation-delay: 0.3s; }
+  .bubble-ripple.r3.exhaling { animation-delay: 0.6s; }
+  @keyframes bubbleRipple {
+    0%   { transform: translate(-50%, -50%) scale(0.95); opacity: 0.9; border-width: 3px; }
+    100% { transform: translate(-50%, -50%) scale(1.9);  opacity: 0;   border-width: 1px; }
+  }
+
+  /* Bubble eye blink overlay */
+  .bubble-eye-blink {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    width: 50%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 11;
+  }
+  .blink-line {
+    position: absolute;
+    background: var(--ink);
+    height: 2.5px;
+    border-radius: 2px;
+    opacity: 0;
+    animation: blink 5s ease-in-out infinite;
+  }
+  .blink-line.left  { top: 49%; left: 36%; width: 10%; }
+  .blink-line.right { top: 49%; left: 56%; width: 10%; }
+  @keyframes blink {
+    0%, 92%, 100% { opacity: 0; }
+    94%, 96%      { opacity: 1; }
+  }
+
+  /* ===================== TOP BAR ===================== */
+
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 14px 14px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 20;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 0 rgba(50, 80, 130, 0.18);
+  }
+  .icon-btn:hover { transform: scale(1.08); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  /* BPM card */
+  .bpm-card {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.92);
+    border: 2px solid rgba(255, 255, 255, 1);
+    border-radius: 16px;
+    padding: 8px 18px;
+    box-shadow: 0 5px 14px rgba(50, 80, 130, 0.18);
+    backdrop-filter: blur(8px);
+    z-index: 20;
+    text-align: center;
+  }
+  .bpm-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+  }
+  .heart-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--pink);
+    align-self: center;
+    animation: heartBeat 1s ease-in-out infinite;
+  }
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    20% { transform: scale(1.25); }
+    40% { transform: scale(1); }
+    55% { transform: scale(1.15); }
+    70% { transform: scale(1); }
+  }
+  .bpm-num {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--ink);
+    line-height: 1;
+    min-width: 2ch;
+    display: inline-block;
+  }
+  .bpm-unit {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--ink);
+    opacity: 0.65;
+    letter-spacing: 0.04em;
+  }
+  .bpm-sub {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--ink);
+    opacity: 0.65;
+    margin-top: 2px;
+  }
+  /* Hearts floating up from BPM card */
+  .floating-hearts {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 60px;
+    pointer-events: none;
+    z-index: 19;
+    overflow: visible;
+  }
+  .float-heart {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    color: var(--pink);
+    width: 12px;
+    height: 12px;
+    animation: heartFloat 4s ease-out infinite;
+    opacity: 0;
+  }
+  @keyframes heartFloat {
+    0%   { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
+    15%  { opacity: 0.9; }
+    100% { transform: translate(calc(-50% + var(--hdx, 0px)), -110%) scale(0.7); opacity: 0; }
+  }
+
+  /* ===================== INSTRUCTION TEXT ===================== */
+
+  .instruction-area {
+    position: absolute;
+    top: 55%;
+    left: 0; right: 0;
+    text-align: center;
+    z-index: 14;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .instruction-text {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    color: var(--ink);
+    line-height: 1;
+    transition: color 0.5s ease;
+    text-shadow: 0 2px 12px rgba(255,255,255,0.8);
+  }
+  .instruction-text.exhale-color { color: var(--purple); }
+  .instruction-sub {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--ink);
+    opacity: 0.7;
+    margin-top: 4px;
+    text-shadow: 0 1px 6px rgba(255,255,255,0.7);
+  }
+
+  /* ===================== GOOD JOB CARD ===================== */
+
+  .goodjob-card {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 380px;
+    background: rgba(255, 255, 255, 0.93);
+    border: 2px solid white;
+    border-radius: 18px;
+    padding: 10px 12px 12px;
+    box-shadow: 0 6px 16px rgba(50, 80, 130, 0.18);
+    backdrop-filter: blur(8px);
+    z-index: 18;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .goodjob-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .star-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--gold-bright) 0%, var(--gold) 90%);
+    border: 2.5px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    animation: badgeWobble 3s ease-in-out infinite alternate;
+  }
+  @keyframes badgeWobble {
+    0%   { transform: rotate(-4deg); }
+    100% { transform: rotate(4deg); }
+  }
+  .star-badge svg { width: 26px; height: 26px; color: white; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.15)); }
+
+  .goodjob-text { flex: 1; min-width: 0; }
+  .goodjob-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .goodjob-sub {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--ink);
+    opacity: 0.7;
+    line-height: 1.3;
+    margin-top: 2px;
+  }
+  .progress-bar {
+    height: 8px;
+    background: rgba(80, 100, 130, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--purple), #6ec5d8, var(--gold));
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(180, 156, 232, 0.5);
+    transition: width 0.6s ease;
+  }
+  .progress-end {
+    position: absolute;
+    right: -3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--gold);
+  }
+
+  /* Cycle counter */
+  .cycle-counter {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Fredoka', sans-serif;
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.18em;
+    z-index: 19;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+
+  /* ===================== WELCOME ===================== */
+
+  .welcome {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(140, 200, 240, 0.96) 0%, rgba(100, 170, 220, 0.98) 100%);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  .welcome.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .welcome-bubble {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, transparent 35%),
+      radial-gradient(circle at 50% 50%, var(--bubble-light) 0%, var(--bubble) 70%, #4a9dc5 100%);
+    box-shadow: 0 8px 24px rgba(50, 100, 150, 0.35), inset -8px -10px 20px rgba(60, 130, 170, 0.3), inset 4px 6px 14px rgba(255,255,255,0.6);
+    margin-bottom: 18px;
+    animation: welcomeBubble 3s ease-in-out infinite alternate;
+    position: relative;
+  }
+  .welcome-bubble::before {
+    content: '';
+    position: absolute;
+    top: 42%; left: 32%;
+    width: 8px; height: 8px;
+    background: var(--ink);
+    border-radius: 50%;
+    box-shadow: 32px 0 0 var(--ink);
+  }
+  .welcome-bubble::after {
+    content: '';
+    position: absolute;
+    top: 56%; left: 50%;
+    transform: translateX(-50%);
+    width: 14px; height: 8px;
+    border: 2.5px solid var(--ink);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+  }
+  @keyframes welcomeBubble {
+    0%   { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-8px) scale(1.05); }
+  }
+  .welcome-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 36px;
+    color: white;
+    letter-spacing: 0.04em;
+    text-shadow: 0 3px 0 rgba(60, 130, 170, 0.6), 0 6px 14px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+  }
+  .welcome-text {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.45;
+    color: white;
+    max-width: 280px;
+    margin-bottom: 22px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .welcome-rules {
+    background: rgba(255, 255, 255, 0.22);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 12px;
+    color: white;
+    margin-bottom: 26px;
+    line-height: 1.7;
+    text-align: left;
+    backdrop-filter: blur(4px);
+  }
+  .welcome-rules .green { color: #5cd486; font-weight: 700; }
+  .welcome-rules .purple { color: #d4b8ff; font-weight: 700; }
+  .begin-btn {
+    background: linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 100%);
+    border: 3px solid var(--ink);
+    color: var(--ink);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    padding: 12px 36px;
+    cursor: pointer;
+    border-radius: 30px;
+    box-shadow: 0 5px 0 var(--ink), 0 8px 16px rgba(0,0,0,0.25);
+    transition: all 0.15s ease;
+  }
+  .begin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 var(--ink), 0 10px 20px rgba(0,0,0,0.3);
+  }
+  .begin-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 var(--ink), 0 4px 8px rgba(0,0,0,0.2);
+  }
+
+  /* Settings */
+  .settings-panel {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: min(280px, 85%);
+    background: linear-gradient(180deg, #b8e0f0 0%, #8ec8e0 100%);
+    border-left: 3px solid var(--gold);
+    padding: 28px 22px;
+    z-index: 60;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+  .settings-panel.open { transform: translateX(0); }
+  .settings-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--gold);
+    font-weight: 700;
+  }
+  .setting-row { margin-bottom: 18px; }
+  .setting-row label {
+    display: block;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .setting-row input[type="range"] { width: 100%; accent-color: var(--gold); }
+  .setting-value {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    float: right;
+  }
+  .checkbox-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .checkbox-row input { accent-color: var(--gold); width: 16px; height: 16px; }
+  .checkbox-row label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+  }
+  .close-settings {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--gold);
+    border: 2px solid var(--ink);
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    line-height: 1;
+  }
+
+  @media (max-width: 420px) {
+    .instruction-text { font-size: 26px; }
+    .bpm-num { font-size: 19px; }
+    .goodjob-title { font-size: 13px; }
+    .goodjob-sub { font-size: 10px; }
+    .sun-marker { width: 28px; height: 28px; margin-left: -14px; top: -16px; }
+    .star-badge { width: 42px; height: 42px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+
+  <!-- Sky atmosphere -->
+  <div class="sun-glow"></div>
+  <div class="sun-rays"></div>
+
+  <!-- Drifting clouds -->
+  <svg class="cloud" style="top: 6%;  left: 0; width: 70px; height: 30px; animation-duration: 90s;" viewBox="0 0 70 30">
+    <ellipse cx="20" cy="20" rx="15" ry="10" fill="white"/>
+    <ellipse cx="35" cy="15" rx="18" ry="12" fill="white"/>
+    <ellipse cx="50" cy="20" rx="14" ry="9" fill="white"/>
+  </svg>
+  <svg class="cloud" style="top: 12%; left: 0; width: 55px; height: 22px; animation-duration: 130s; animation-delay: -45s;" viewBox="0 0 55 22">
+    <ellipse cx="15" cy="14" rx="12" ry="8" fill="white"/>
+    <ellipse cx="28" cy="11" rx="14" ry="9" fill="white"/>
+    <ellipse cx="42" cy="14" rx="11" ry="7" fill="white"/>
+  </svg>
+  <svg class="cloud" style="top: 18%; left: 0; width: 50px; height: 20px; animation-duration: 110s; animation-delay: -85s;" viewBox="0 0 50 20">
+    <ellipse cx="14" cy="13" rx="11" ry="7" fill="white"/>
+    <ellipse cx="26" cy="10" rx="12" ry="8" fill="white"/>
+    <ellipse cx="38" cy="13" rx="10" ry="6" fill="white"/>
+  </svg>
+  <svg class="cloud" style="top: 24%; left: 0; width: 60px; height: 24px; animation-duration: 145s; animation-delay: -30s;" viewBox="0 0 60 24">
+    <ellipse cx="16" cy="16" rx="13" ry="8" fill="white"/>
+    <ellipse cx="30" cy="12" rx="15" ry="10" fill="white"/>
+    <ellipse cx="44" cy="16" rx="12" ry="7" fill="white"/>
+  </svg>
+
+  <!-- Sparkles -->
+  <div class="sparkles" id="sparkles"></div>
+
+  <!-- Distant mountains -->
+  <svg class="mountains" viewBox="0 0 390 60" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id="mtnG" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#8aa8d8"/>
+        <stop offset="100%" stop-color="#5878a8"/>
+      </linearGradient>
+    </defs>
+    <path d="M 0 60 L 0 40 L 30 25 L 55 35 L 85 12 L 120 30 L 160 18 L 195 28 L 230 12 L 270 28 L 305 16 L 340 32 L 380 22 L 390 26 L 390 60 Z"
+          fill="url(#mtnG)" opacity="0.7"/>
+    <path d="M 0 60 L 0 48 L 35 40 L 70 48 L 110 38 L 150 46 L 195 36 L 240 44 L 285 38 L 325 46 L 370 40 L 390 44 L 390 60 Z"
+          fill="#4a6fa5" opacity="0.6"/>
+  </svg>
+
+  <!-- Sea waves -->
+  <div class="sea-shimmer"></div>
+  <div class="sea-waves">
+    <svg viewBox="0 0 390 180" preserveAspectRatio="none">
+      <path class="wave-line"    d="M 30 30  Q 90 40, 150 35  Q 210 30, 270 40 Q 330 45, 390 38"/>
+      <path class="wave-line w2" d="M 0  65  Q 80 75, 150 70  Q 220 65, 290 78 Q 350 82, 390 75"/>
+      <path class="wave-line w3" d="M 20 105 Q 90 115, 170 110 Q 250 105, 320 115"/>
+      <path class="wave-line w4" d="M 50 150 Q 110 158, 180 155 Q 240 152, 310 160"/>
+    </svg>
+  </div>
+
+  <!-- Left side plants/flowers -->
+  <svg class="plants-left" viewBox="0 0 100 200" preserveAspectRatio="xMinYMax slice">
+    <!-- Big leafy plant -->
+    <ellipse cx="20" cy="200" rx="30" ry="35" fill="#3a8a4a"/>
+    <path d="M 12 200 Q 5 150, 18 130 Q 22 145, 18 200 Z" fill="#4aa05a"/>
+    <path d="M 25 200 Q 35 145, 40 135 Q 38 155, 32 200 Z" fill="#5cb074"/>
+    <path d="M 18 195 Q 8 165, 15 145 Q 19 160, 22 195 Z" fill="#6ec084"/>
+    <!-- Flowers -->
+    <circle cx="14" cy="148" r="5" fill="var(--pink)"/>
+    <circle cx="14" cy="148" r="2" fill="var(--gold-bright)"/>
+    <circle cx="32" cy="158" r="4" fill="var(--pink)"/>
+    <circle cx="32" cy="158" r="1.5" fill="var(--gold-bright)"/>
+    <!-- Small leaves -->
+    <ellipse cx="55" cy="190" rx="14" ry="10" fill="#4aa05a" transform="rotate(20 55 190)"/>
+    <ellipse cx="70" cy="195" rx="10" ry="7" fill="#5cb074" transform="rotate(-15 70 195)"/>
+  </svg>
+
+  <!-- Right side plants -->
+  <svg class="plants-right" viewBox="0 0 100 200" preserveAspectRatio="xMaxYMax slice">
+    <ellipse cx="78" cy="200" rx="28" ry="32" fill="#3a8a4a"/>
+    <path d="M 86 200 Q 92 152, 82 132 Q 80 148, 82 200 Z" fill="#4aa05a"/>
+    <path d="M 72 200 Q 65 148, 60 138 Q 62 158, 68 200 Z" fill="#5cb074"/>
+    <path d="M 82 195 Q 90 168, 84 148 Q 80 162, 78 195 Z" fill="#6ec084"/>
+    <!-- Flowers -->
+    <circle cx="86" cy="150" r="5" fill="#ff7d8e"/>
+    <circle cx="86" cy="150" r="2" fill="var(--gold-bright)"/>
+    <circle cx="66" cy="162" r="4" fill="var(--pink)"/>
+    <circle cx="66" cy="162" r="1.5" fill="var(--gold-bright)"/>
+    <ellipse cx="45" cy="192" rx="13" ry="9" fill="#4aa05a" transform="rotate(-20 45 192)"/>
+    <ellipse cx="30" cy="196" rx="10" ry="7" fill="#5cb074" transform="rotate(15 30 196)"/>
+  </svg>
+
+  <!-- Palm tree -->
+  <svg class="palm-tree" viewBox="0 0 100 250" preserveAspectRatio="xMidYMax meet">
+    <!-- Trunk -->
+    <path d="M 48 250 Q 42 200, 45 150 Q 48 100, 50 50 Q 52 30, 55 20"
+          stroke="#8a5a3a" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <path d="M 48 250 Q 42 200, 45 150 Q 48 100, 50 50 Q 52 30, 55 20"
+          stroke="#6a4020" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <!-- Trunk segments -->
+    <g stroke="#6a4020" stroke-width="1.5" fill="none">
+      <path d="M 41 200 L 48 200"/>
+      <path d="M 41 175 L 49 175"/>
+      <path d="M 43 150 L 51 150"/>
+      <path d="M 44 125 L 52 125"/>
+      <path d="M 46 100 L 54 100"/>
+      <path d="M 48 75 L 56 75"/>
+    </g>
+    <!-- Palm fronds -->
+    <g fill="#3a8a4a" stroke="#2a6a3a" stroke-width="1">
+      <!-- Frond 1: top -->
+      <path d="M 55 20 Q 70 -5, 90 0 Q 75 8, 55 22 Z"/>
+      <!-- Frond 2: upper-left -->
+      <path d="M 55 20 Q 40 5, 20 10 Q 35 18, 55 25 Z"/>
+      <!-- Frond 3: right -->
+      <path d="M 55 22 Q 85 20, 95 35 Q 75 30, 55 28 Z"/>
+      <!-- Frond 4: left -->
+      <path d="M 55 22 Q 25 24, 15 38 Q 35 32, 55 28 Z"/>
+      <!-- Frond 5: down-right -->
+      <path d="M 55 25 Q 80 38, 90 55 Q 70 45, 55 30 Z"/>
+      <!-- Frond 6: down-left -->
+      <path d="M 55 25 Q 30 38, 18 56 Q 38 46, 55 30 Z"/>
+    </g>
+    <g fill="#5cb074">
+      <path d="M 55 22 Q 70 5, 85 6 Q 72 14, 55 23 Z"/>
+      <path d="M 55 22 Q 40 8, 25 12 Q 38 18, 55 24 Z"/>
+    </g>
+    <!-- Coconuts -->
+    <circle cx="58" cy="28" r="4" fill="#6a4020" stroke="#3a2010" stroke-width="1"/>
+    <circle cx="64" cy="30" r="3.5" fill="#6a4020" stroke="#3a2010" stroke-width="1"/>
+  </svg>
+
+  <!-- TURTLE on rock (left) -->
+  <div class="mascot-platform left" id="turtle-platform">
+    <div class="mascot-halo"></div>
+    <div class="mascot-sparkles" id="sparkles-turtle"></div>
+    <svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMax meet">
+      <!-- Wake-up burst -->
+      <foreignObject x="80" y="-5" width="40" height="40" style="overflow: visible;">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="wake-burst">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="100%" height="100%">
+            <path d="M12 2 L14 9 L21 10 L15 14 L17 21 L12 17 L7 21 L9 14 L3 10 L10 9 Z"/>
+          </svg>
+        </div>
+      </foreignObject>
+      <!-- Rock platform -->
+      <ellipse cx="100" cy="135" rx="80" ry="15" fill="#5a4a3a"/>
+      <path d="M 30 135 Q 25 110, 40 95 Q 70 80, 100 85 Q 130 80, 160 95 Q 175 110, 170 135 Z"
+            fill="#7a6a5a" stroke="#3a2a1a" stroke-width="2"/>
+      <path d="M 40 105 Q 50 100, 60 105 M 130 100 Q 145 95, 155 105"
+            stroke="#4a3a2a" stroke-width="1.5" fill="none"/>
+      <!-- Grass tufts on rock -->
+      <path d="M 50 90 L 50 80 M 53 88 L 53 79 M 145 90 L 145 80 M 148 88 L 148 79"
+            stroke="#3a8a4a" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Turtle (bobbing) -->
+      <g class="mascot-wrap">
+        <g class="mascot-bob">
+          <!-- Body (legs visible) -->
+          <ellipse cx="100" cy="78" rx="55" ry="14" fill="var(--turtle)" stroke="#3a8a4a" stroke-width="2"/>
+          <!-- Shell -->
+          <ellipse cx="100" cy="55" rx="48" ry="30" fill="var(--turtle-shell)" stroke="#5a3818" stroke-width="2.5"/>
+          <!-- Shell highlights -->
+          <ellipse cx="85" cy="42" rx="12" ry="6" fill="#a07050" opacity="0.5"/>
+          <!-- Shell pattern -->
+          <path d="M 70 55 Q 85 40, 100 55 Q 115 70, 100 55 M 100 55 Q 115 40, 130 55"
+                fill="none" stroke="#5a3818" stroke-width="1.5"/>
+          <circle cx="80" cy="55" r="6" fill="none" stroke="#5a3818" stroke-width="1.5"/>
+          <circle cx="120" cy="55" r="6" fill="none" stroke="#5a3818" stroke-width="1.5"/>
+          <!-- Head -->
+          <ellipse cx="148" cy="68" rx="18" ry="16" fill="var(--turtle)" stroke="#3a8a4a" stroke-width="2"/>
+          <!-- Eye -->
+          <ellipse cx="156" cy="64" rx="3" ry="3.5" fill="var(--ink)"/>
+          <circle cx="157" cy="62" r="1" fill="white"/>
+          <!-- Smile -->
+          <path d="M 148 74 Q 154 78, 160 74" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- Blush -->
+          <ellipse cx="142" cy="72" rx="3" ry="2" fill="var(--pink)" opacity="0.7"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- SEAL on rock (right) -->
+  <div class="mascot-platform right" id="seal-platform">
+    <div class="mascot-halo"></div>
+    <div class="mascot-sparkles" id="sparkles-seal"></div>
+    <svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMax meet">
+      <foreignObject x="80" y="-5" width="40" height="40" style="overflow: visible;">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="wake-burst">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="100%" height="100%">
+            <path d="M12 2 L14 9 L21 10 L15 14 L17 21 L12 17 L7 21 L9 14 L3 10 L10 9 Z"/>
+          </svg>
+        </div>
+      </foreignObject>
+      <!-- Rock -->
+      <ellipse cx="100" cy="135" rx="80" ry="15" fill="#5a4a3a"/>
+      <path d="M 30 135 Q 25 110, 40 95 Q 70 80, 100 85 Q 130 80, 160 95 Q 175 110, 170 135 Z"
+            fill="#7a6a5a" stroke="#3a2a1a" stroke-width="2"/>
+      <path d="M 40 105 Q 50 100, 60 105 M 130 100 Q 145 95, 155 105"
+            stroke="#4a3a2a" stroke-width="1.5" fill="none"/>
+      <path d="M 50 90 L 50 80 M 53 88 L 53 79 M 145 90 L 145 80 M 148 88 L 148 79"
+            stroke="#3a8a4a" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Seal -->
+      <g class="mascot-wrap">
+        <g class="mascot-bob">
+          <!-- Body -->
+          <ellipse cx="100" cy="70" rx="48" ry="40" fill="var(--seal)" stroke="#9678b8" stroke-width="2.5"/>
+          <!-- Belly -->
+          <ellipse cx="100" cy="80" rx="32" ry="22" fill="#e8d8f0"/>
+          <!-- Flippers -->
+          <ellipse cx="58" cy="86" rx="11" ry="6" fill="var(--seal)" stroke="#9678b8" stroke-width="2" transform="rotate(-20 58 86)"/>
+          <ellipse cx="142" cy="86" rx="11" ry="6" fill="var(--seal)" stroke="#9678b8" stroke-width="2" transform="rotate(20 142 86)"/>
+          <!-- Ears -->
+          <ellipse cx="72" cy="40" rx="7" ry="10" fill="var(--seal)" stroke="#9678b8" stroke-width="2"/>
+          <ellipse cx="128" cy="40" rx="7" ry="10" fill="var(--seal)" stroke="#9678b8" stroke-width="2"/>
+          <!-- Face -->
+          <ellipse cx="100" cy="55" rx="28" ry="22" fill="#d4b5e0"/>
+          <!-- Eyes (closed/sleepy with curves) -->
+          <path d="M 86 56 Q 90 52, 94 56" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M 106 56 Q 110 52, 114 56" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- Nose -->
+          <ellipse cx="100" cy="64" rx="3.5" ry="2.5" fill="var(--ink)"/>
+          <!-- Smile -->
+          <path d="M 94 70 Q 100 73, 106 70" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- Whiskers -->
+          <g stroke="#9678b8" stroke-width="0.8">
+            <line x1="80" y1="64" x2="72" y2="62"/>
+            <line x1="80" y1="68" x2="72" y2="70"/>
+            <line x1="120" y1="64" x2="128" y2="62"/>
+            <line x1="120" y1="68" x2="128" y2="70"/>
+          </g>
+          <!-- Blush -->
+          <circle cx="82" cy="62" r="3" fill="var(--pink)" opacity="0.6"/>
+          <circle cx="118" cy="62" r="3" fill="var(--pink)" opacity="0.6"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Breath arc -->
+  <div class="breath-arc">
+    <svg viewBox="-100 -100 200 200">
+      <defs>
+        <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"  stop-color="#ffd24a" stop-opacity="0.9"/>
+          <stop offset="50%" stop-color="#ffac95" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="#b89ce8" stop-opacity="0.9"/>
+        </linearGradient>
+        <filter id="arcGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      <!-- The arc itself (full circle) -->
+      <circle cx="0" cy="0" r="90" fill="none" stroke="url(#arcGrad)" stroke-width="2.5" stroke-linecap="round" filter="url(#arcGlow)"/>
+      <!-- Subtle inner ring -->
+      <circle cx="0" cy="0" r="70" fill="none" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1" stroke-dasharray="3 3"/>
+    </svg>
+  </div>
+
+  <!-- Arc labels -->
+  <div class="arc-label inhale active" id="label-inhale">
+    <span>Inhale</span>
+    <span class="arc-label-dot"></span>
+  </div>
+  <div class="arc-label exhale dim" id="label-exhale">
+    <span>Exhale</span>
+    <span class="arc-label-dot">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 21s-7-4.5-9-9.5C1.5 7 4 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 3 0 5.5 3 4 7.5-2 5-9 9.5-9 9.5z"/>
+      </svg>
+    </span>
+  </div>
+
+  <!-- Sun marker -->
+  <div class="marker-orbit" id="marker-orbit">
+    <div class="sun-marker"></div>
+  </div>
+
+  <!-- Bubble glow halo -->
+  <div class="bubble-aura" id="bubble-aura"></div>
+
+  <!-- Orbiting sparkles -->
+  <div class="orbit-sparkles" id="orbit-sparkles"></div>
+
+  <!-- The bubble character -->
+  <div class="bubble-char" id="bubble-char">
+    <svg viewBox="0 0 200 200">
+      <defs>
+        <radialGradient id="bubbleBody" cx="35%" cy="30%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.95)"/>
+          <stop offset="22%" stop-color="#e8f5fb"/>
+          <stop offset="55%" stop-color="#9ad7ef"/>
+          <stop offset="85%" stop-color="#5fb5d8"/>
+          <stop offset="100%" stop-color="#3d8db0"/>
+        </radialGradient>
+        <radialGradient id="bubbleHighlight" cx="50%" cy="50%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.95)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Main body -->
+      <circle cx="100" cy="100" r="88" fill="url(#bubbleBody)" stroke="rgba(60, 130, 170, 0.4)" stroke-width="1"/>
+
+      <!-- Top-left highlight (big) -->
+      <ellipse cx="68" cy="58" rx="28" ry="18" fill="url(#bubbleHighlight)" opacity="0.85"/>
+      <ellipse cx="58" cy="48" rx="11" ry="7" fill="rgba(255,255,255,0.95)"/>
+
+      <!-- Bottom-right reflection -->
+      <ellipse cx="140" cy="150" rx="18" ry="12" fill="rgba(255,255,255,0.3)"/>
+
+      <!-- Eyes -->
+      <ellipse cx="78" cy="98" rx="9" ry="11" fill="#1f2540"/>
+      <ellipse cx="122" cy="98" rx="9" ry="11" fill="#1f2540"/>
+      <!-- Eye sparkles -->
+      <circle cx="80.5" cy="93" r="3.5" fill="white"/>
+      <circle cx="124.5" cy="93" r="3.5" fill="white"/>
+      <circle cx="76" cy="102" r="1.5" fill="white"/>
+      <circle cx="120" cy="102" r="1.5" fill="white"/>
+
+      <!-- Blush -->
+      <ellipse cx="62" cy="124" rx="11" ry="6" fill="#ff95b0" opacity="0.65"/>
+      <ellipse cx="138" cy="124" rx="11" ry="6" fill="#ff95b0" opacity="0.65"/>
+
+      <!-- Mouth (open happy smile) -->
+      <path d="M 84 120 Q 100 138, 116 120 Q 110 130, 100 130 Q 90 130, 84 120 Z" fill="#3a1a2a"/>
+      <!-- Tongue -->
+      <path d="M 90 125 Q 100 133, 110 125 Q 105 130, 100 130 Q 95 130, 90 125 Z" fill="#ff95b0"/>
+    </svg>
+  </div>
+
+  <!-- Eye blink overlay -->
+  <div class="bubble-eye-blink" id="eye-blink">
+    <div class="blink-line left"></div>
+    <div class="blink-line right"></div>
+  </div>
+
+  <!-- Ripples expanding outward on exhale -->
+  <div class="bubble-ripple" id="ripple-1"></div>
+  <div class="bubble-ripple r2" id="ripple-2"></div>
+  <div class="bubble-ripple r3" id="ripple-3"></div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <button class="icon-btn" id="sound-btn" aria-label="Sound">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+        <path d="M15.54 8.46a5 5 0 010 7.07"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="settings-toggle" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- BPM card -->
+  <div class="bpm-card">
+    <div class="bpm-row">
+      <svg class="heart-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 21s-7-4.5-9-9.5C1.5 7 4 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 3 0 5.5 3 4 7.5-2 5-9 9.5-9 9.5z"/>
+      </svg>
+      <span class="bpm-num" id="bpm-num">82</span>
+      <span class="bpm-unit">BPM</span>
+    </div>
+    <div class="bpm-sub">For your health</div>
+  </div>
+
+  <!-- Floating hearts from BPM -->
+  <div class="floating-hearts" id="floating-hearts"></div>
+
+  <!-- Instruction text -->
+  <div class="instruction-area" id="instruction-area">
+    <div class="instruction-text" id="instruction-text">Inhale…</div>
+    <div class="instruction-sub" id="instruction-sub">Breathe slowly</div>
+  </div>
+
+  <!-- Good Job card -->
+  <div class="goodjob-card">
+    <div class="goodjob-row">
+      <div class="star-badge">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2 L14 9 L21 10 L15 14 L17 21 L12 17 L7 21 L9 14 L3 10 L10 9 Z"/>
+        </svg>
+      </div>
+      <div class="goodjob-text">
+        <div class="goodjob-title" id="goodjob-title">Good job!</div>
+        <div class="goodjob-sub" id="goodjob-sub">Keep practicing!<br>You're doing great!</div>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+      <svg class="progress-end" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 1 L10 6 L15 6.5 L11 10 L12.5 15 L8 12.5 L3.5 15 L5 10 L1 6.5 L6 6 Z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Cycle counter -->
+  <div class="cycle-counter" id="cycle-counter">CYCLE 1 OF 5</div>
+
+  <!-- Welcome -->
+  <div class="welcome" id="welcome">
+    <div class="welcome-bubble"></div>
+    <div class="welcome-title">Hi there!</div>
+    <div class="welcome-text" id="welcome-text">Watch the cute bubble breathe! As it shrinks, breathe in. As it grows, breathe out. ✨</div>
+    <div class="welcome-rules">
+      ☀️ Sun moves to <span class="green">Inhale</span> = breathe IN<br>
+      ☀️ Sun moves to <span class="purple">Exhale</span> = breathe OUT
+    </div>
+    <button class="begin-btn" id="begin-btn">Let's Go!</button>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings-panel" id="settings-panel">
+    <button class="close-settings" id="close-settings">×</button>
+    <div class="settings-title">Settings</div>
+    <div class="setting-row">
+      <label>Inhale <span class="setting-value" id="inhale-val">4.6s</span></label>
+      <input type="range" id="inhale-slider" min="2000" max="8000" step="100" value="4600">
+    </div>
+    <div class="setting-row">
+      <label>Exhale <span class="setting-value" id="exhale-val">4.6s</span></label>
+      <input type="range" id="exhale-slider" min="2000" max="8000" step="100" value="4600">
+    </div>
+    <div class="setting-row">
+      <label>Cycles <span class="setting-value" id="count-val">5</span></label>
+      <input type="range" id="count-slider" min="1" max="30" step="1" value="5">
+    </div>
+    <div class="settings-title" style="margin-top: 24px; font-size: 14px;">Display</div>
+    <div class="checkbox-row"><input type="checkbox" id="show-bpm" checked><label for="show-bpm">Show BPM</label></div>
+  </div>
+
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  let config = {
+    inhale: parseInt(params.get('inhale')) || 4600,
+    exhale: parseInt(params.get('exhale')) || 4600,
+    count: parseInt(params.get('count')) || 5,
+    showHrv: params.get('showHrv') === '1',
+    showResp: params.get('showRespiration') === '1',
+    showBpm: params.get('showBpm') !== '0',
+    welcome: params.get('welcome') || "Watch the cute bubble breathe! As it shrinks, breathe in. As it grows, breathe out. \u2728"
+  };
+  document.getElementById('welcome-text').textContent = config.welcome;
+
+  function applyTimings() {
+    document.documentElement.style.setProperty('--inhale', config.inhale + 'ms');
+    document.documentElement.style.setProperty('--exhale', config.exhale + 'ms');
+  }
+  applyTimings();
+
+  function applyDisplay() {
+    const bpmCard = document.querySelector('.bpm-card');
+    if (bpmCard) bpmCard.style.display = config.showBpm ? '' : 'none';
+  }
+  applyDisplay();
+
+  // ===== Spawn sky sparkles =====
+  const sparklesEl = document.getElementById('sparkles');
+  const sparkleSvg = '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>';
+  for (let i = 0; i < 16; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top  = Math.random() * 45 + '%';
+    s.style.animationDelay = (Math.random() * 4) + 's';
+    s.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+    const sz = 6 + Math.random() * 8;
+    s.style.width = sz + 'px';
+    s.style.height = sz + 'px';
+    s.innerHTML = sparkleSvg;
+    sparklesEl.appendChild(s);
+  }
+
+  // ===== Spawn orbiting sparkles around bubble =====
+  const orbitEl = document.getElementById('orbit-sparkles');
+  for (let i = 0; i < 6; i++) {
+    const s = document.createElement('div');
+    s.className = 'orbit-sparkle';
+    s.style.setProperty('--a', (i * 60) + 'deg');
+    s.style.animationDelay = (i * 0.5) + 's';
+    s.innerHTML = sparkleSvg;
+    orbitEl.appendChild(s);
+  }
+
+  // ===== Spawn floating hearts from BPM card =====
+  const heartsEl = document.getElementById('floating-hearts');
+  const heartSvg = '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><path d="M12 21s-7-4.5-9-9.5C1.5 7 4 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 3 0 5.5 3 4 7.5-2 5-9 9.5-9 9.5z"/></svg>';
+  for (let i = 0; i < 5; i++) {
+    const h = document.createElement('div');
+    h.className = 'float-heart';
+    h.style.animationDelay = (i * 0.7 + Math.random() * 0.3) + 's';
+    h.style.animationDuration = (3.5 + Math.random() * 1.5) + 's';
+    h.style.setProperty('--hdx', (Math.random() * 60 - 30) + 'px');
+    const sz = 10 + Math.random() * 6;
+    h.style.width = sz + 'px';
+    h.style.height = sz + 'px';
+    h.innerHTML = heartSvg;
+    heartsEl.appendChild(h);
+  }
+
+  // ===== Spawn mascot sparkles =====
+  ['turtle', 'seal'].forEach(side => {
+    const c = document.getElementById('sparkles-' + side);
+    for (let i = 0; i < 5; i++) {
+      const sp = document.createElement('div');
+      sp.className = 'ms-spark';
+      sp.style.setProperty('--a', (i * 72) + 'deg');
+      sp.style.animationDelay = (i * 0.18) + 's';
+      sp.innerHTML = sparkleSvg;
+      c.appendChild(sp);
+    }
+  });
+
+  // ===== Breath cycle elements =====
+  const bubbleChar = document.getElementById('bubble-char');
+  const bubbleAura = document.getElementById('bubble-aura');
+  const markerOrbit = document.getElementById('marker-orbit');
+  const turtlePlatform = document.getElementById('turtle-platform');
+  const sealPlatform = document.getElementById('seal-platform');
+  const labelInhale = document.getElementById('label-inhale');
+  const labelExhale = document.getElementById('label-exhale');
+  const ripples = [
+    document.getElementById('ripple-1'),
+    document.getElementById('ripple-2'),
+    document.getElementById('ripple-3')
+  ];
+  const instructionText = document.getElementById('instruction-text');
+  const instructionSub = document.getElementById('instruction-sub');
+  const instructionArea = document.getElementById('instruction-area');
+  const goodjobTitle = document.getElementById('goodjob-title');
+  const goodjobSub = document.getElementById('goodjob-sub');
+  const progressFill = document.getElementById('progress-fill');
+  const cycleCounter = document.getElementById('cycle-counter');
+  const bpmNum = document.getElementById('bpm-num');
+
+  const animatedEls = [bubbleChar, bubbleAura, markerOrbit];
+
+  let running = false;
+  let currentCycle = 0;
+  let phaseTimeout = null;
+  let metricsInterval = null;
+
+  function setPhase(phase) {
+    animatedEls.forEach(el => el.classList.remove('inhaling', 'exhaling'));
+    ripples.forEach(r => r.classList.remove('exhaling'));
+    void bubbleChar.offsetWidth;
+    if (phase) {
+      animatedEls.forEach(el => el.classList.add(phase));
+      if (phase === 'exhaling') {
+        ripples.forEach(r => r.classList.add('exhaling'));
+      }
+    }
+  }
+
+  function setInhale() {
+    setPhase('inhaling');
+    turtlePlatform.classList.add('active');
+    sealPlatform.classList.remove('active');
+    labelInhale.classList.add('active'); labelInhale.classList.remove('dim');
+    labelExhale.classList.add('dim');    labelExhale.classList.remove('active');
+    instructionArea.style.opacity = '0';
+    setTimeout(() => {
+      instructionText.textContent = 'Inhale\u2026';
+      instructionText.classList.remove('exhale-color');
+      instructionSub.textContent = 'Breathe slowly';
+      instructionArea.style.opacity = '1';
+    }, 180);
+  }
+
+  function setExhale() {
+    setPhase('exhaling');
+    sealPlatform.classList.add('active');
+    turtlePlatform.classList.remove('active');
+    labelExhale.classList.add('active'); labelExhale.classList.remove('dim');
+    labelInhale.classList.add('dim');    labelInhale.classList.remove('active');
+    instructionArea.style.opacity = '0';
+    setTimeout(() => {
+      instructionText.textContent = 'Exhale\u2026';
+      instructionText.classList.add('exhale-color');
+      instructionSub.textContent = 'Release gently';
+      instructionArea.style.opacity = '1';
+    }, 180);
+  }
+
+  function setComplete() {
+    setPhase(null);
+    turtlePlatform.classList.remove('active');
+    sealPlatform.classList.remove('active');
+    labelInhale.classList.remove('active','dim');
+    labelExhale.classList.remove('active','dim');
+    bubbleChar.style.transform = 'translate(-50%, -50%) scale(1)';
+    bubbleAura.style.transform = 'translate(-50%, -50%) scale(1)';
+    bubbleAura.style.opacity = '1';
+    markerOrbit.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+    instructionArea.style.opacity = '0';
+    setTimeout(() => {
+      instructionText.textContent = 'You did it!';
+      instructionText.classList.remove('exhale-color');
+      instructionSub.textContent = 'Amazing work \u2728';
+      instructionArea.style.opacity = '1';
+    }, 180);
+    goodjobTitle.textContent = 'Champion!';
+    goodjobSub.innerHTML = "Session complete!<br>You're a star!";
+  }
+
+  function updateMetrics() {
+    const baseBpm = 82;
+    const drift = Math.max(0, currentCycle - 1) * 0.6;
+    const noise = Math.sin(Date.now() / 700) * 1.2;
+    bpmNum.textContent = Math.round(baseBpm - drift + noise);
+    const pct = Math.min(currentCycle / config.count, 1);
+    progressFill.style.width = (pct * 100) + '%';
+  }
+
+  function showEncouragement() {
+    const messages = [
+      ['Awesome!', "You're crushing it!<br>Keep breathing!"],
+      ['Amazing!', "So calm and peaceful!<br>Keep going!"],
+      ['Wonderful!', "Look at you go!<br>You're a natural!"],
+      ['Great job!', "Keep practicing!<br>You're doing great!"],
+      ['Beautiful!', "Such calm vibes!<br>Stay with it!"]
+    ];
+    const m = messages[Math.floor(Math.random() * messages.length)];
+    goodjobTitle.textContent = m[0];
+    goodjobSub.innerHTML = m[1];
+  }
+
+  function runCycle() {
+    if (!running) return;
+    if (currentCycle >= config.count) {
+      setComplete();
+      cycleCounter.textContent = 'COMPLETE \u00b7 ' + config.count + ' CYCLES';
+      running = false;
+      clearInterval(metricsInterval);
+      updateMetrics();
+      return;
+    }
+    currentCycle++;
+    cycleCounter.textContent = 'CYCLE ' + currentCycle + ' OF ' + config.count;
+    updateMetrics();
+    if (currentCycle > 1 && (currentCycle % 2 === 0)) {
+      showEncouragement();
+    }
+    setInhale();
+    phaseTimeout = setTimeout(() => {
+      if (!running) return;
+      setExhale();
+      phaseTimeout = setTimeout(runCycle, config.exhale);
+    }, config.inhale);
+  }
+
+  function startSession() {
+    running = true;
+    currentCycle = 0;
+    [bubbleChar, bubbleAura, markerOrbit].forEach(el => {
+      el.style.transform = ''; el.style.filter = ''; el.style.opacity = '';
+    });
+    goodjobTitle.textContent = 'Good job!';
+    goodjobSub.innerHTML = "Keep practicing!<br>You're doing great!";
+    updateMetrics();
+    metricsInterval = setInterval(updateMetrics, 600);
+    runCycle();
+  }
+
+  document.getElementById('begin-btn').addEventListener('click', () => {
+    document.getElementById('welcome').classList.add('hidden');
+    setTimeout(startSession, 400);
+  });
+
+  const settingsPanel = document.getElementById('settings-panel');
+  document.getElementById('settings-toggle').addEventListener('click', () => settingsPanel.classList.add('open'));
+  document.getElementById('close-settings').addEventListener('click', () => settingsPanel.classList.remove('open'));
+
+  const inhaleSlider = document.getElementById('inhale-slider');
+  const exhaleSlider = document.getElementById('exhale-slider');
+  const countSlider = document.getElementById('count-slider');
+  inhaleSlider.value = config.inhale;
+  exhaleSlider.value = config.exhale;
+  countSlider.value = config.count;
+  document.getElementById('inhale-val').textContent = (config.inhale/1000).toFixed(1) + 's';
+  document.getElementById('exhale-val').textContent = (config.exhale/1000).toFixed(1) + 's';
+  document.getElementById('count-val').textContent = config.count;
+  document.getElementById('show-bpm').checked = config.showBpm;
+  inhaleSlider.addEventListener('input', e => { config.inhale = parseInt(e.target.value); document.getElementById('inhale-val').textContent = (config.inhale/1000).toFixed(1)+'s'; applyTimings(); });
+  exhaleSlider.addEventListener('input', e => { config.exhale = parseInt(e.target.value); document.getElementById('exhale-val').textContent = (config.exhale/1000).toFixed(1)+'s'; applyTimings(); });
+  countSlider.addEventListener('input', e => { config.count = parseInt(e.target.value); document.getElementById('count-val').textContent = config.count; });
+  document.getElementById('show-bpm').addEventListener('change', e => { config.showBpm = e.target.checked; applyDisplay(); });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.welcome') || e.target.closest('.settings-panel') || e.target.closest('.icon-btn')) return;
+    if (!running && currentCycle >= config.count) startSession();
+  });
+</script>
+
+</body>
+</html>

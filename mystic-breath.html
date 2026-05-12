@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mystic Breath — Paced Breathing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --inhale: 4600ms;
+    --exhale: 4600ms;
+    --hold: 800ms;
+    --jade-dark: #0a1a14;
+    --jade-mid: #1a3a2a;
+    --jade-light: #3a6b48;
+    --moss: #5a8a4a;
+    --orb-cyan: #4ee0ff;
+    --orb-blue: #2090d0;
+    --orb-glow: rgba(120, 220, 255, 0.85);
+    --gold: #d4b87a;
+    --bone: #e8e2d0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: #000;
+    color: var(--bone);
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ===== Scene background ===== */
+  .scene {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 45%, #1a4a3a 0%, #0a2418 35%, #04130c 70%, #000 100%);
+  }
+
+  /* Atmospheric haze layers */
+  .haze {
+    position: absolute;
+    inset: -10%;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(80, 200, 160, 0.12) 0%, transparent 40%),
+      radial-gradient(circle at 70% 80%, rgba(40, 120, 200, 0.10) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(180, 240, 220, 0.06) 0%, transparent 60%);
+    filter: blur(20px);
+    animation: drift 24s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-2%, 1%) scale(1.05); }
+  }
+
+  /* Foliage frame — SVG-drawn leaves */
+  .foliage {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  .foliage svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Vines from corners */
+  .vine {
+    position: absolute;
+    width: 45%;
+    height: 60%;
+    opacity: 0.92;
+  }
+  .vine.tl { top: -2%; left: -2%; }
+  .vine.tr { top: -2%; right: -2%; transform: scaleX(-1); }
+  .vine.bl { bottom: -2%; left: -2%; transform: scaleY(-1); }
+  .vine.br { bottom: -2%; right: -2%; transform: scale(-1, -1); }
+
+  /* Stone arch silhouette */
+  .arch {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(82vw, 460px);
+    height: min(82vw, 460px);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.55;
+  }
+
+  /* ===== The Orb ===== */
+  .orb-stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(58vw, 280px);
+    height: min(58vw, 280px);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orb {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    transform: scale(0.9);
+    filter: brightness(0.95) saturate(0.9);
+    opacity: 1;
+    will-change: transform, filter, opacity;
+  }
+
+  .orb.inhaling {
+    animation: orbInhale var(--inhale) ease-in-out forwards;
+  }
+
+  .orb.exhaling {
+    animation: orbExhale var(--exhale) ease-in-out forwards;
+  }
+
+  .orb.resting {
+    animation: orbRest 1.5s ease-out forwards;
+  }
+
+  /* Outer aura — softest, largest */
+  .orb::before {
+    content: '';
+    position: absolute;
+    inset: -60%;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(120, 220, 255, 0.35) 0%,
+      rgba(80, 180, 230, 0.18) 25%,
+      rgba(40, 120, 200, 0.08) 50%,
+      transparent 75%);
+    filter: blur(30px);
+  }
+
+  /* Middle glow */
+  .orb::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(180, 240, 255, 0.55) 0%,
+      rgba(100, 200, 240, 0.30) 30%,
+      rgba(40, 130, 200, 0.12) 60%,
+      transparent 80%);
+    filter: blur(12px);
+  }
+
+  /* Core of the orb */
+  .orb-core {
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 38% 35%,
+        rgba(240, 252, 255, 1) 0%,
+        rgba(180, 235, 255, 0.95) 8%,
+        rgba(100, 200, 240, 0.85) 25%,
+        rgba(40, 140, 210, 0.75) 50%,
+        rgba(20, 70, 130, 0.85) 80%,
+        rgba(10, 30, 70, 0.95) 100%);
+    box-shadow:
+      inset -8px -12px 30px rgba(10, 30, 60, 0.7),
+      inset 6px 8px 20px rgba(200, 240, 255, 0.6),
+      0 0 60px rgba(100, 200, 240, 0.6),
+      0 0 120px rgba(60, 160, 230, 0.4);
+    overflow: hidden;
+  }
+
+  /* Inner swirling light */
+  .orb-core::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(255,255,255,0.08) 45%, transparent 60%),
+      conic-gradient(from 0deg,
+        rgba(180, 240, 255, 0.0) 0deg,
+        rgba(180, 240, 255, 0.25) 60deg,
+        rgba(80, 180, 240, 0.0) 120deg,
+        rgba(140, 220, 250, 0.20) 240deg,
+        rgba(180, 240, 255, 0.0) 360deg);
+    animation: swirl 8s linear infinite;
+    mix-blend-mode: screen;
+  }
+
+  /* Highlight */
+  .orb-core::after {
+    content: '';
+    position: absolute;
+    top: 12%;
+    left: 22%;
+    width: 35%;
+    height: 25%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse,
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.3) 40%,
+      transparent 70%);
+    filter: blur(2px);
+  }
+
+  /* Stone ring around orb */
+  .stone-ring {
+    position: absolute;
+    inset: -8%;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .stone-ring svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.6));
+  }
+
+  @keyframes orbInhale {
+    0% {
+      transform: scale(0.85);
+      filter: brightness(0.8) saturate(0.85);
+      opacity: 0.85;
+    }
+    100% {
+      transform: scale(1.2);
+      filter: brightness(1.7) saturate(1.25);
+      opacity: 1;
+    }
+  }
+
+  @keyframes orbExhale {
+    0% {
+      transform: scale(1.2);
+      filter: brightness(1.7) saturate(1.25);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.85);
+      filter: brightness(0.8) saturate(0.85);
+      opacity: 0.85;
+    }
+  }
+
+  @keyframes orbRest {
+    to {
+      transform: scale(1);
+      filter: brightness(1.1) saturate(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes swirl {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Particle dust */
+  .particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(180, 240, 255, 0.8);
+    box-shadow: 0 0 6px rgba(120, 220, 255, 0.9);
+    animation: float linear infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) translateX(var(--drift, 20px)); opacity: 0; }
+  }
+
+  /* ===== Top bar (BPM) ===== */
+  .top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 28px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 10;
+  }
+
+  .bpm {
+    font-family: 'Cinzel', serif;
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    color: var(--bone);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .bpm-num {
+    display: inline-block;
+    min-width: 2ch;
+    text-align: right;
+  }
+
+  .heart-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+    color: #ff6b8a;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    20% { transform: scale(1.25); opacity: 1; }
+    40% { transform: scale(1); opacity: 0.9; }
+  }
+
+  .inhale-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: rgba(232, 226, 208, 0.7);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Settings cog */
+  .settings-btn {
+    background: none;
+    border: 1px solid rgba(232, 226, 208, 0.25);
+    color: var(--bone);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    transition: all 0.3s ease;
+  }
+
+  .settings-btn:hover {
+    border-color: rgba(232, 226, 208, 0.6);
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* ===== Bottom area ===== */
+  .bottom-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 32px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    gap: 8px;
+  }
+
+  .bpm-large {
+    font-family: 'Cinzel', serif;
+    font-weight: 500;
+    font-size: 34px;
+    letter-spacing: 0.05em;
+    color: var(--bone);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+  }
+
+  .instruction {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 26px;
+    letter-spacing: 0.08em;
+    color: rgba(232, 226, 208, 0.92);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    transition: opacity 0.6s ease;
+    text-align: center;
+  }
+
+  .cycle-counter {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: rgba(232, 226, 208, 0.45);
+    margin-top: 12px;
+    text-transform: uppercase;
+  }
+
+  /* HRV / Respiration mini-readouts */
+  .readouts {
+    position: absolute;
+    bottom: 130px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 24px;
+    z-index: 10;
+    opacity: 0.65;
+  }
+
+  .readout {
+    text-align: center;
+    font-family: 'Cinzel', serif;
+  }
+
+  .readout-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: rgba(232, 226, 208, 0.5);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .readout-value {
+    font-size: 14px;
+    color: var(--bone);
+    letter-spacing: 0.05em;
+  }
+
+  /* Welcome overlay */
+  .welcome {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(10,30,20,0.92) 0%, rgba(0,0,0,0.98) 100%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .welcome.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .welcome-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 500;
+    font-size: 28px;
+    letter-spacing: 0.2em;
+    color: var(--bone);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .welcome-divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 16px 0 24px;
+  }
+
+  .welcome-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.6;
+    color: rgba(232, 226, 208, 0.85);
+    max-width: 320px;
+    margin-bottom: 36px;
+  }
+
+  .begin-btn {
+    background: linear-gradient(135deg, rgba(212, 184, 122, 0.15), rgba(212, 184, 122, 0.05));
+    border: 1px solid rgba(212, 184, 122, 0.5);
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.4s ease;
+    backdrop-filter: blur(4px);
+  }
+
+  .begin-btn:hover {
+    background: linear-gradient(135deg, rgba(212, 184, 122, 0.25), rgba(212, 184, 122, 0.1));
+    border-color: var(--gold);
+    box-shadow: 0 0 24px rgba(212, 184, 122, 0.3);
+  }
+
+  /* Settings panel */
+  .settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 90vw);
+    background: rgba(8, 20, 14, 0.96);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(212, 184, 122, 0.2);
+    padding: 32px 28px;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .settings-panel.open { transform: translateX(0); }
+
+  .settings-title {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(212, 184, 122, 0.2);
+  }
+
+  .setting-row {
+    margin-bottom: 20px;
+  }
+
+  .setting-row label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: rgba(232, 226, 208, 0.7);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .setting-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--gold);
+  }
+
+  .setting-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--bone);
+    float: right;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .checkbox-row input { accent-color: var(--gold); }
+
+  .checkbox-row label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 11px;
+  }
+
+  .close-settings {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--bone);
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Mobile tweaks */
+  @media (max-width: 420px) {
+    .top-bar { padding: 20px 22px 0; }
+    .bottom-area { padding: 0 22px 40px; }
+    .bpm { font-size: 18px; }
+    .bpm-large { font-size: 28px; }
+    .instruction { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="haze"></div>
+
+  <!-- Foliage SVGs -->
+  <div class="foliage">
+    <!-- Top-left vine cluster -->
+    <svg class="vine tl" viewBox="0 0 400 500" preserveAspectRatio="xMinYMin slice">
+      <defs>
+        <linearGradient id="leafGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#4a8a5a"/>
+          <stop offset="50%" stop-color="#2a5a3a"/>
+          <stop offset="100%" stop-color="#0a2a1a"/>
+        </linearGradient>
+        <linearGradient id="leafGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#6aa07a"/>
+          <stop offset="100%" stop-color="#1a3a2a"/>
+        </linearGradient>
+        <radialGradient id="mossGrad" cx="50%" cy="50%">
+          <stop offset="0%" stop-color="#3a6a4a"/>
+          <stop offset="100%" stop-color="#0a1a14"/>
+        </radialGradient>
+      </defs>
+      <!-- Background moss blob -->
+      <ellipse cx="80" cy="100" rx="160" ry="140" fill="url(#mossGrad)" opacity="0.7"/>
+      <!-- Vine stems -->
+      <path d="M 20 0 Q 80 80, 60 160 T 100 320 Q 140 380, 90 480"
+            stroke="#3a5a2a" stroke-width="4" fill="none" opacity="0.6"/>
+      <path d="M 80 -10 Q 140 100, 180 200 T 220 380"
+            stroke="#2a4a1a" stroke-width="3" fill="none" opacity="0.5"/>
+      <!-- Large leaves -->
+      <g transform="translate(40, 50) rotate(-20)">
+        <path d="M 0 0 Q 30 -40, 70 -30 Q 90 0, 70 40 Q 30 50, 0 30 Z"
+              fill="url(#leafGrad1)" stroke="#1a3a1a" stroke-width="1"/>
+        <path d="M 5 5 Q 30 -25, 65 -25" stroke="#1a3a1a" stroke-width="0.8" fill="none" opacity="0.6"/>
+      </g>
+      <g transform="translate(100, 30) rotate(15)">
+        <path d="M 0 0 Q 25 -35, 60 -25 Q 75 5, 60 35 Q 25 42, 0 25 Z"
+              fill="url(#leafGrad2)" stroke="#1a3a1a" stroke-width="1"/>
+      </g>
+      <g transform="translate(20, 180) rotate(-45)">
+        <path d="M 0 0 Q 35 -45, 80 -35 Q 100 0, 80 45 Q 35 55, 0 35 Z"
+              fill="url(#leafGrad1)" stroke="#0a2a1a" stroke-width="1"/>
+        <path d="M 5 5 Q 35 -30, 75 -30" stroke="#0a2a1a" stroke-width="0.8" fill="none" opacity="0.6"/>
+      </g>
+      <g transform="translate(140, 140) rotate(40)">
+        <path d="M 0 0 Q 25 -30, 55 -22 Q 70 5, 55 30 Q 25 38, 0 22 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+      <g transform="translate(60, 280) rotate(-30)">
+        <path d="M 0 0 Q 40 -50, 90 -35 Q 110 5, 90 50 Q 40 60, 0 40 Z"
+              fill="url(#leafGrad1)" stroke="#0a2a1a" stroke-width="1"/>
+      </g>
+      <g transform="translate(160, 320) rotate(60)">
+        <path d="M 0 0 Q 30 -38, 65 -28 Q 80 5, 65 38 Q 30 45, 0 28 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+      <!-- Small accent leaves -->
+      <circle cx="50" cy="120" r="8" fill="#5a8a4a" opacity="0.7"/>
+      <circle cx="180" cy="80" r="6" fill="#4a7a3a" opacity="0.6"/>
+      <circle cx="120" cy="240" r="10" fill="#6a9a5a" opacity="0.5"/>
+    </svg>
+
+    <svg class="vine tr" viewBox="0 0 400 500" preserveAspectRatio="xMinYMin slice">
+      <ellipse cx="80" cy="100" rx="160" ry="140" fill="url(#mossGrad)" opacity="0.7"/>
+      <path d="M 20 0 Q 80 80, 60 160 T 100 320 Q 140 380, 90 480"
+            stroke="#3a5a2a" stroke-width="4" fill="none" opacity="0.6"/>
+      <path d="M 80 -10 Q 140 100, 180 200 T 220 380"
+            stroke="#2a4a1a" stroke-width="3" fill="none" opacity="0.5"/>
+      <g transform="translate(40, 50) rotate(-20)">
+        <path d="M 0 0 Q 30 -40, 70 -30 Q 90 0, 70 40 Q 30 50, 0 30 Z"
+              fill="url(#leafGrad1)" stroke="#1a3a1a" stroke-width="1"/>
+      </g>
+      <g transform="translate(100, 30) rotate(15)">
+        <path d="M 0 0 Q 25 -35, 60 -25 Q 75 5, 60 35 Q 25 42, 0 25 Z"
+              fill="url(#leafGrad2)" stroke="#1a3a1a" stroke-width="1"/>
+      </g>
+      <g transform="translate(20, 180) rotate(-45)">
+        <path d="M 0 0 Q 35 -45, 80 -35 Q 100 0, 80 45 Q 35 55, 0 35 Z"
+              fill="url(#leafGrad1)" stroke="#0a2a1a" stroke-width="1"/>
+      </g>
+      <g transform="translate(140, 140) rotate(40)">
+        <path d="M 0 0 Q 25 -30, 55 -22 Q 70 5, 55 30 Q 25 38, 0 22 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+      <g transform="translate(60, 280) rotate(-30)">
+        <path d="M 0 0 Q 40 -50, 90 -35 Q 110 5, 90 50 Q 40 60, 0 40 Z"
+              fill="url(#leafGrad1)" stroke="#0a2a1a" stroke-width="1"/>
+      </g>
+      <g transform="translate(160, 320) rotate(60)">
+        <path d="M 0 0 Q 30 -38, 65 -28 Q 80 5, 65 38 Q 30 45, 0 28 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+    </svg>
+
+    <svg class="vine bl" viewBox="0 0 400 500" preserveAspectRatio="xMinYMin slice">
+      <ellipse cx="80" cy="100" rx="160" ry="140" fill="url(#mossGrad)" opacity="0.6"/>
+      <path d="M 20 0 Q 80 80, 60 160 T 100 320 Q 140 380, 90 480"
+            stroke="#2a4a1a" stroke-width="4" fill="none" opacity="0.6"/>
+      <g transform="translate(40, 50) rotate(-20)">
+        <path d="M 0 0 Q 30 -40, 70 -30 Q 90 0, 70 40 Q 30 50, 0 30 Z"
+              fill="url(#leafGrad1)"/>
+      </g>
+      <g transform="translate(100, 30) rotate(15)">
+        <path d="M 0 0 Q 25 -35, 60 -25 Q 75 5, 60 35 Q 25 42, 0 25 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+      <g transform="translate(20, 180) rotate(-45)">
+        <path d="M 0 0 Q 35 -45, 80 -35 Q 100 0, 80 45 Q 35 55, 0 35 Z"
+              fill="url(#leafGrad1)"/>
+      </g>
+      <g transform="translate(140, 140) rotate(40)">
+        <path d="M 0 0 Q 25 -30, 55 -22 Q 70 5, 55 30 Q 25 38, 0 22 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+    </svg>
+
+    <svg class="vine br" viewBox="0 0 400 500" preserveAspectRatio="xMinYMin slice">
+      <ellipse cx="80" cy="100" rx="160" ry="140" fill="url(#mossGrad)" opacity="0.6"/>
+      <path d="M 20 0 Q 80 80, 60 160 T 100 320 Q 140 380, 90 480"
+            stroke="#2a4a1a" stroke-width="4" fill="none" opacity="0.6"/>
+      <g transform="translate(40, 50) rotate(-20)">
+        <path d="M 0 0 Q 30 -40, 70 -30 Q 90 0, 70 40 Q 30 50, 0 30 Z"
+              fill="url(#leafGrad1)"/>
+      </g>
+      <g transform="translate(100, 30) rotate(15)">
+        <path d="M 0 0 Q 25 -35, 60 -25 Q 75 5, 60 35 Q 25 42, 0 25 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+      <g transform="translate(20, 180) rotate(-45)">
+        <path d="M 0 0 Q 35 -45, 80 -35 Q 100 0, 80 45 Q 35 55, 0 35 Z"
+              fill="url(#leafGrad1)"/>
+      </g>
+      <g transform="translate(140, 140) rotate(40)">
+        <path d="M 0 0 Q 25 -30, 55 -22 Q 70 5, 55 30 Q 25 38, 0 22 Z"
+              fill="url(#leafGrad2)"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Stone arch ring around orb -->
+  <svg class="arch" viewBox="0 0 460 460">
+    <defs>
+      <radialGradient id="stoneGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="60%" stop-color="rgba(0,0,0,0)"/>
+        <stop offset="75%" stop-color="rgba(40,50,40,0.4)"/>
+        <stop offset="85%" stop-color="rgba(60,70,55,0.7)"/>
+        <stop offset="100%" stop-color="rgba(20,30,20,0.95)"/>
+      </radialGradient>
+    </defs>
+    <!-- Stone ring -->
+    <circle cx="230" cy="230" r="180" fill="none" stroke="rgba(80, 90, 70, 0.5)" stroke-width="22"/>
+    <circle cx="230" cy="230" r="180" fill="none" stroke="rgba(180, 190, 160, 0.15)" stroke-width="1"/>
+    <!-- Carved notches around the ring -->
+    <g stroke="rgba(20, 30, 20, 0.7)" stroke-width="2" fill="none">
+      <line x1="230" y1="40" x2="230" y2="60"/>
+      <line x1="230" y1="400" x2="230" y2="420"/>
+      <line x1="40" y1="230" x2="60" y2="230"/>
+      <line x1="400" y1="230" x2="420" y2="230"/>
+      <line x1="95" y1="95" x2="110" y2="110"/>
+      <line x1="350" y1="95" x2="365" y2="110"/>
+      <line x1="95" y1="365" x2="110" y2="350"/>
+      <line x1="350" y1="365" x2="365" y2="350"/>
+    </g>
+  </svg>
+
+  <!-- The orb in the center -->
+  <div class="orb-stage">
+    <div class="orb">
+      <div class="orb-core"></div>
+    </div>
+  </div>
+
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+</div>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div>
+    <div class="bpm">
+      <svg class="heart-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 21s-7-4.5-9-9.5C1.5 7 4 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 3 0 5.5 3 4 7.5-2 5-9 9.5-9 9.5z"/>
+      </svg>
+      <span class="bpm-num" id="bpm-top">82</span><span style="font-size:14px;letter-spacing:0.15em;margin-left:4px;">BPM</span>
+    </div>
+    <div class="inhale-label" id="inhale-tag">Inhale</div>
+  </div>
+  <button class="settings-btn" id="settings-toggle" aria-label="Settings">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Mini readouts -->
+<div class="readouts" id="readouts">
+  <div class="readout">
+    <div class="readout-label">HRV</div>
+    <div class="readout-value" id="hrv-val">58</div>
+  </div>
+  <div class="readout">
+    <div class="readout-label">Resp</div>
+    <div class="readout-value" id="resp-val">6.5</div>
+  </div>
+</div>
+
+<!-- Bottom area -->
+<div class="bottom-area">
+  <div class="bpm-large" id="bpm-large">82 BPM</div>
+  <div class="instruction" id="instruction">Inhale…</div>
+  <div class="cycle-counter" id="cycle-counter">Cycle 1 of 5</div>
+</div>
+
+<!-- Welcome overlay -->
+<div class="welcome" id="welcome">
+  <div class="welcome-title">Mystic Breath</div>
+  <div class="welcome-divider"></div>
+  <div class="welcome-text">Welcome to your paced breathing session. Take a moment to settle. Let the orb guide your breath.</div>
+  <button class="begin-btn" id="begin-btn">Begin</button>
+</div>
+
+<!-- Settings panel -->
+<div class="settings-panel" id="settings-panel">
+  <button class="close-settings" id="close-settings">×</button>
+  <div class="settings-title">Session</div>
+
+  <div class="setting-row">
+    <label>Inhale <span class="setting-value" id="inhale-val">4.6s</span></label>
+    <input type="range" id="inhale-slider" min="2000" max="8000" step="100" value="4600">
+  </div>
+
+  <div class="setting-row">
+    <label>Exhale <span class="setting-value" id="exhale-val">4.6s</span></label>
+    <input type="range" id="exhale-slider" min="2000" max="8000" step="100" value="4600">
+  </div>
+
+  <div class="setting-row">
+    <label>Cycles <span class="setting-value" id="count-val">5</span></label>
+    <input type="range" id="count-slider" min="1" max="30" step="1" value="5">
+  </div>
+
+  <div class="settings-title" style="margin-top: 32px;">Display</div>
+
+  <div class="checkbox-row">
+    <input type="checkbox" id="show-hrv" checked>
+    <label for="show-hrv">Show HRV</label>
+  </div>
+  <div class="checkbox-row">
+    <input type="checkbox" id="show-resp" checked>
+    <label for="show-resp">Show Respiration</label>
+  </div>
+  <div class="checkbox-row">
+    <input type="checkbox" id="show-bpm" checked>
+    <label for="show-bpm">Show BPM</label>
+  </div>
+</div>
+
+<!-- Audio: soft ambient tone via WebAudio -->
+
+<script>
+  // ===== Parse URL params =====
+  const params = new URLSearchParams(window.location.search);
+  let config = {
+    inhale: parseInt(params.get('inhale')) || 4600,
+    exhale: parseInt(params.get('exhale')) || 4600,
+    count: parseInt(params.get('count')) || 5,
+    showHrv: params.get('showHrv') !== '0',
+    showResp: params.get('showRespiration') !== '0',
+    showBpm: params.get('showBpm') !== '0',
+    welcome: params.get('welcome') || 'Welcome to your paced breathing session. Take a moment to settle. Let the orb guide your breath.'
+  };
+
+  // Apply welcome text
+  document.querySelector('.welcome-text').textContent = config.welcome;
+
+  // Apply CSS vars
+  function applyTimings() {
+    document.documentElement.style.setProperty('--inhale', config.inhale + 'ms');
+    document.documentElement.style.setProperty('--exhale', config.exhale + 'ms');
+  }
+  applyTimings();
+
+  // Apply display toggles
+  function applyDisplayToggles() {
+    document.getElementById('readouts').style.display =
+      (config.showHrv || config.showResp) ? 'flex' : 'none';
+    document.querySelector('#readouts .readout:nth-child(1)').style.display =
+      config.showHrv ? 'block' : 'none';
+    document.querySelector('#readouts .readout:nth-child(2)').style.display =
+      config.showResp ? 'block' : 'none';
+    document.querySelector('.top-bar > div').style.opacity = config.showBpm ? '1' : '0';
+    document.getElementById('bpm-large').style.display = config.showBpm ? 'block' : 'none';
+  }
+  applyDisplayToggles();
+
+  // ===== Particles =====
+  const particlesEl = document.getElementById('particles');
+  function spawnParticles() {
+    for (let i = 0; i < 14; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.bottom = '-10px';
+      p.style.animationDuration = (8 + Math.random() * 8) + 's';
+      p.style.animationDelay = (Math.random() * 8) + 's';
+      p.style.opacity = (0.3 + Math.random() * 0.5);
+      p.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
+      p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+      particlesEl.appendChild(p);
+    }
+  }
+  spawnParticles();
+
+  // ===== Breath cycle engine =====
+  const orb = document.querySelector('.orb');
+  const instruction = document.getElementById('instruction');
+  const inhaleTag = document.getElementById('inhale-tag');
+  const cycleCounter = document.getElementById('cycle-counter');
+  const bpmTop = document.getElementById('bpm-top');
+  const bpmLarge = document.getElementById('bpm-large');
+  const hrvVal = document.getElementById('hrv-val');
+  const respVal = document.getElementById('resp-val');
+
+  let running = false;
+  let currentCycle = 0;
+  let phaseTimeout = null;
+
+  function setOrbPhase(phase) {
+    // phase: 'inhaling' | 'exhaling' | 'resting' | 'idle'
+    orb.classList.remove('inhaling', 'exhaling', 'resting');
+    // Force reflow so re-adding the same class restarts the animation
+    void orb.offsetWidth;
+    if (phase !== 'idle') {
+      orb.classList.add(phase);
+    }
+  }
+
+  function setInhale() {
+    setOrbPhase('inhaling');
+    instruction.style.opacity = '0';
+    setTimeout(() => {
+      instruction.textContent = 'Inhale…';
+      inhaleTag.textContent = 'Inhale';
+      instruction.style.opacity = '1';
+    }, 250);
+  }
+
+  function setExhale() {
+    setOrbPhase('exhaling');
+    instruction.style.opacity = '0';
+    setTimeout(() => {
+      instruction.textContent = 'Exhale…';
+      inhaleTag.textContent = 'Exhale';
+      instruction.style.opacity = '1';
+    }, 250);
+  }
+
+  function setComplete() {
+    instruction.style.opacity = '0';
+    setTimeout(() => {
+      instruction.textContent = 'Session complete';
+      inhaleTag.textContent = 'Rest';
+      instruction.style.opacity = '1';
+    }, 250);
+    setOrbPhase('resting');
+  }
+
+  function updateMetrics() {
+    // Simulate slow drift in BPM and HRV — slightly improves over cycles
+    const baseBpm = 82;
+    const drift = Math.max(0, currentCycle - 1) * 0.6;
+    const noise = (Math.sin(Date.now() / 700) * 1.2);
+    const bpm = Math.round(baseBpm - drift + noise);
+    bpmTop.textContent = bpm;
+    bpmLarge.textContent = bpm + ' BPM';
+
+    const baseHrv = 58;
+    const hrv = Math.round(baseHrv + currentCycle * 0.8 + Math.sin(Date.now() / 900) * 2);
+    hrvVal.textContent = hrv;
+
+    // Respiration rate (breaths/min) derived from inhale+exhale
+    const cycleSec = (config.inhale + config.exhale) / 1000;
+    const respRate = (60 / cycleSec).toFixed(1);
+    respVal.textContent = respRate;
+  }
+
+  let metricsInterval = null;
+
+  function runCycle() {
+    if (!running) return;
+    if (currentCycle >= config.count) {
+      setComplete();
+      cycleCounter.textContent = `Complete · ${config.count} cycles`;
+      running = false;
+      clearInterval(metricsInterval);
+      return;
+    }
+    currentCycle++;
+    cycleCounter.textContent = `Cycle ${currentCycle} of ${config.count}`;
+
+    setInhale();
+    phaseTimeout = setTimeout(() => {
+      if (!running) return;
+      setExhale();
+      phaseTimeout = setTimeout(() => {
+        runCycle();
+      }, config.exhale);
+    }, config.inhale);
+  }
+
+  function startSession() {
+    running = true;
+    currentCycle = 0;
+    updateMetrics();
+    metricsInterval = setInterval(updateMetrics, 600);
+    runCycle();
+  }
+
+  function stopSession() {
+    running = false;
+    clearTimeout(phaseTimeout);
+    clearInterval(metricsInterval);
+  }
+
+  // ===== Welcome / Begin =====
+  document.getElementById('begin-btn').addEventListener('click', () => {
+    document.getElementById('welcome').classList.add('hidden');
+    setTimeout(startSession, 400);
+  });
+
+  // ===== Settings panel =====
+  const settingsPanel = document.getElementById('settings-panel');
+  document.getElementById('settings-toggle').addEventListener('click', () => {
+    settingsPanel.classList.add('open');
+  });
+  document.getElementById('close-settings').addEventListener('click', () => {
+    settingsPanel.classList.remove('open');
+  });
+
+  const inhaleSlider = document.getElementById('inhale-slider');
+  const exhaleSlider = document.getElementById('exhale-slider');
+  const countSlider = document.getElementById('count-slider');
+
+  inhaleSlider.value = config.inhale;
+  exhaleSlider.value = config.exhale;
+  countSlider.value = config.count;
+  document.getElementById('inhale-val').textContent = (config.inhale / 1000).toFixed(1) + 's';
+  document.getElementById('exhale-val').textContent = (config.exhale / 1000).toFixed(1) + 's';
+  document.getElementById('count-val').textContent = config.count;
+  document.getElementById('show-hrv').checked = config.showHrv;
+  document.getElementById('show-resp').checked = config.showResp;
+  document.getElementById('show-bpm').checked = config.showBpm;
+
+  inhaleSlider.addEventListener('input', e => {
+    config.inhale = parseInt(e.target.value);
+    document.getElementById('inhale-val').textContent = (config.inhale / 1000).toFixed(1) + 's';
+    applyTimings();
+  });
+  exhaleSlider.addEventListener('input', e => {
+    config.exhale = parseInt(e.target.value);
+    document.getElementById('exhale-val').textContent = (config.exhale / 1000).toFixed(1) + 's';
+    applyTimings();
+  });
+  countSlider.addEventListener('input', e => {
+    config.count = parseInt(e.target.value);
+    document.getElementById('count-val').textContent = config.count;
+  });
+  document.getElementById('show-hrv').addEventListener('change', e => {
+    config.showHrv = e.target.checked;
+    applyDisplayToggles();
+  });
+  document.getElementById('show-resp').addEventListener('change', e => {
+    config.showResp = e.target.checked;
+    applyDisplayToggles();
+  });
+  document.getElementById('show-bpm').addEventListener('change', e => {
+    config.showBpm = e.target.checked;
+    applyDisplayToggles();
+  });
+
+  // Tap-to-restart after completion
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.welcome') || e.target.closest('.settings-panel') ||
+        e.target.closest('.settings-btn')) return;
+    if (!running && currentCycle >= config.count) {
+      startSession();
+    }
+  });
+</script>
+
+</body>
+</html>

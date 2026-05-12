@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Breathe — Paced Breathing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --inhale: 4600ms;
+    --exhale: 4600ms;
+    --sky-top: #c8e8f5;
+    --sky-mid: #fde4b8;
+    --sky-bottom: #ffd4a3;
+    --grass: #6cc35a;
+    --grass-dark: #3a8a3a;
+    --water: #5ab4d8;
+    --blob: #6ed8e0;
+    --blob-dark: #3aa8c0;
+    --blob-light: #b8efef;
+    --gold: #ffd23d;
+    --gold-bright: #fff4a8;
+    --ink: #2c3e50;
+    --cream: #fff8e7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-bottom) 100%);
+    color: var(--ink);
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ===== Sky & clouds ===== */
+  .sky {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #c8e8f5 0%, #ffe4c0 60%, #ffd4a3 100%);
+    overflow: hidden;
+  }
+
+  .cloud {
+    position: absolute;
+    background: white;
+    border-radius: 100px;
+    opacity: 0.85;
+    box-shadow:
+      20px 0 0 -4px white,
+      -20px 0 0 -4px white,
+      40px -4px 0 -10px white,
+      -40px -4px 0 -10px white;
+    animation: cloudDrift linear infinite;
+  }
+
+  @keyframes cloudDrift {
+    from { transform: translateX(-20vw); }
+    to { transform: translateX(120vw); }
+  }
+
+  /* Sun glow */
+  .sun {
+    position: absolute;
+    top: 8%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 230, 140, 0.7) 0%, rgba(255, 210, 100, 0.4) 30%, transparent 60%);
+    filter: blur(20px);
+  }
+
+  /* ===== Background islands ===== */
+  .world {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .island {
+    position: absolute;
+    animation: floatGentle 4s ease-in-out infinite;
+  }
+
+  @keyframes floatGentle {
+    0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+    50% { transform: translateY(-8px) rotate(var(--rot, 0deg)); }
+  }
+
+  .island-left { left: -2%; top: 22%; width: 130px; animation-delay: 0s; }
+  .island-right { right: -2%; top: 28%; width: 130px; animation-delay: -2s; }
+  .island-bottom-left { left: 2%; bottom: 14%; width: 110px; animation-delay: -1s; }
+  .island-bottom-right { right: 2%; bottom: 18%; width: 110px; animation-delay: -3s; }
+  .island-top-mid { left: 50%; top: 4%; transform: translateX(-50%); width: 90px; animation-delay: -1.5s; opacity: 0.85; }
+
+  /* Crystals floating around */
+  .crystal {
+    position: absolute;
+    width: 22px;
+    height: 30px;
+    animation: floatGentle 3s ease-in-out infinite;
+  }
+
+  .crystal-1 { left: 18%; top: 38%; animation-delay: -0.5s; }
+  .crystal-2 { right: 18%; top: 42%; animation-delay: -1.8s; }
+  .crystal-3 { left: 10%; bottom: 32%; animation-delay: -2.5s; }
+  .crystal-4 { right: 10%; bottom: 28%; animation-delay: -1.2s; }
+
+  /* ===== The Blob ===== */
+  .blob-stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(70vw, 320px);
+    height: min(70vw, 320px);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Golden aura ring - the soft yellow halo */
+  .aura {
+    position: absolute;
+    inset: -25%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle,
+        rgba(255, 244, 168, 0.0) 30%,
+        rgba(255, 220, 100, 0.55) 42%,
+        rgba(255, 200, 80, 0.45) 50%,
+        rgba(255, 180, 60, 0.15) 62%,
+        transparent 75%);
+    filter: blur(8px);
+    will-change: transform, opacity, filter;
+  }
+
+  /* Inner aura layer */
+  .aura-inner {
+    position: absolute;
+    inset: -10%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle,
+        rgba(255, 250, 200, 0.0) 38%,
+        rgba(255, 240, 150, 0.7) 48%,
+        rgba(255, 220, 100, 0.4) 55%,
+        transparent 70%);
+    filter: blur(4px);
+    will-change: transform, opacity;
+  }
+
+  /* Sparkle ring around aura */
+  .sparkles {
+    position: absolute;
+    inset: -30%;
+    pointer-events: none;
+  }
+
+  .sparkle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    color: #fff8c0;
+    animation: sparkleSpin 6s linear infinite;
+    transform-origin: center;
+  }
+
+  @keyframes sparkleSpin {
+    0% { transform: rotate(0deg) translateX(var(--dist, 130px)) rotate(0deg) scale(0.6); opacity: 0; }
+    20% { opacity: 1; }
+    50% { transform: rotate(180deg) translateX(var(--dist, 130px)) rotate(-180deg) scale(1.2); opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: rotate(360deg) translateX(var(--dist, 130px)) rotate(-360deg) scale(0.6); opacity: 0; }
+  }
+
+  /* The blob itself */
+  .blob {
+    position: relative;
+    width: 65%;
+    height: 65%;
+    will-change: transform, filter;
+  }
+
+  .blob-body {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%,
+        #d0f5f5 0%,
+        var(--blob-light) 15%,
+        var(--blob) 45%,
+        var(--blob-dark) 90%,
+        #2a8a9c 100%);
+    box-shadow:
+      inset -10px -15px 30px rgba(40, 120, 140, 0.45),
+      inset 8px 10px 25px rgba(255, 255, 255, 0.55),
+      0 8px 24px rgba(40, 100, 140, 0.3),
+      0 0 60px rgba(180, 240, 240, 0.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Specular highlight */
+  .blob-body::before {
+    content: '';
+    position: absolute;
+    top: 14%;
+    left: 22%;
+    width: 32%;
+    height: 22%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.5) 40%,
+      transparent 70%);
+    filter: blur(1px);
+  }
+
+  /* Secondary small highlight */
+  .blob-body::after {
+    content: '';
+    position: absolute;
+    top: 36%;
+    left: 14%;
+    width: 10%;
+    height: 8%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    filter: blur(1px);
+  }
+
+  /* Face */
+  .face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .eyes {
+    display: flex;
+    gap: 22%;
+    margin-top: 8%;
+  }
+
+  .eye {
+    width: 14px;
+    height: 18px;
+    background: var(--ink);
+    border-radius: 50%;
+    position: relative;
+    animation: blink 5s ease-in-out infinite;
+  }
+
+  .eye::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 1px;
+    width: 5px;
+    height: 5px;
+    background: white;
+    border-radius: 50%;
+  }
+
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    94%, 96% { transform: scaleY(0.1); }
+  }
+
+  .mouth {
+    width: 16px;
+    height: 8px;
+    border: 2.5px solid var(--ink);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    margin-top: 12px;
+    transition: all 0.6s ease;
+  }
+
+  /* Cheek blush */
+  .cheek {
+    position: absolute;
+    width: 12px;
+    height: 8px;
+    background: rgba(255, 130, 150, 0.55);
+    border-radius: 50%;
+    filter: blur(1px);
+    top: 56%;
+  }
+  .cheek.left { left: 24%; }
+  .cheek.right { right: 24%; }
+
+  /* ===== Breathing animations ===== */
+  .blob.inhaling {
+    animation: blobInhale var(--inhale) ease-in-out forwards;
+  }
+  .blob.exhaling {
+    animation: blobExhale var(--exhale) ease-in-out forwards;
+  }
+
+  .aura.inhaling, .aura-inner.inhaling {
+    animation: auraInhale var(--inhale) ease-in-out forwards;
+  }
+  .aura.exhaling, .aura-inner.exhaling {
+    animation: auraExhale var(--exhale) ease-in-out forwards;
+  }
+
+  @keyframes blobInhale {
+    0% { transform: scale(0.82); }
+    100% { transform: scale(1.12); }
+  }
+  @keyframes blobExhale {
+    0% { transform: scale(1.12); }
+    100% { transform: scale(0.82); }
+  }
+  @keyframes auraInhale {
+    0% { transform: scale(0.75); opacity: 0.55; filter: blur(8px) brightness(0.85); }
+    100% { transform: scale(1.15); opacity: 1; filter: blur(10px) brightness(1.25); }
+  }
+  @keyframes auraExhale {
+    0% { transform: scale(1.15); opacity: 1; filter: blur(10px) brightness(1.25); }
+    100% { transform: scale(0.75); opacity: 0.55; filter: blur(8px) brightness(0.85); }
+  }
+
+  /* Idle gentle bob when not animating */
+  .blob, .aura, .aura-inner {
+    transform: scale(1);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 22px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 20;
+  }
+
+  .bpm-pill {
+    background: white;
+    border-radius: 28px;
+    padding: 8px 16px 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow:
+      0 4px 12px rgba(0,0,0,0.08),
+      0 1px 2px rgba(0,0,0,0.06);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+  }
+
+  .heart-icon {
+    width: 20px;
+    height: 20px;
+    color: #ff5577;
+    animation: heartBeat 1s ease-in-out infinite;
+  }
+
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.25); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.15); }
+    60% { transform: scale(1); }
+  }
+
+  .bpm-text {
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bpm-num {
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .bpm-label {
+    font-size: 9px;
+    font-weight: 500;
+    color: #8a99a8;
+    letter-spacing: 0.1em;
+    margin-top: 1px;
+  }
+
+  .settings-btn {
+    background: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    color: var(--ink);
+    transition: transform 0.2s ease;
+  }
+  .settings-btn:hover { transform: rotate(30deg); }
+
+  /* ===== Bottom area ===== */
+  .bottom-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 24px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 20;
+  }
+
+  .instruction {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    color: var(--ink);
+    text-shadow: 0 2px 4px rgba(255,255,255,0.4);
+    transition: opacity 0.5s ease;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+
+  .subtitle {
+    font-family: 'Nunito', sans-serif;
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(44, 62, 80, 0.6);
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  .cycle-counter {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(44, 62, 80, 0.45);
+    margin-top: 14px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* Good Job badge */
+  .badge {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    background: linear-gradient(135deg, #6cc35a 0%, #4aa83a 100%);
+    color: white;
+    padding: 10px 14px 10px 12px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow:
+      0 6px 16px rgba(60, 140, 50, 0.35),
+      inset 0 1px 0 rgba(255,255,255,0.3);
+    font-family: 'Fredoka', sans-serif;
+    z-index: 25;
+    transform: translateX(-110%);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 180px;
+  }
+  .badge.show { transform: translateX(0); }
+
+  .badge-star {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  }
+
+  .badge-text {
+    line-height: 1.15;
+  }
+  .badge-title {
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .badge-sub {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    opacity: 0.9;
+    margin-top: 1px;
+  }
+
+  /* HRV / Respiration readouts */
+  .readouts {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .readout {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    padding: 6px 12px;
+    border-radius: 14px;
+    text-align: center;
+    font-family: 'Fredoka', sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .readout-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: rgba(44, 62, 80, 0.5);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .readout-value {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 600;
+    margin-top: 1px;
+  }
+
+  /* Welcome overlay */
+  .welcome {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(200, 232, 245, 0.96) 0%, rgba(255, 228, 192, 0.96) 100%);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+
+  .welcome.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .welcome-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 38px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .welcome-emoji {
+    font-size: 56px;
+    margin-bottom: 12px;
+    animation: floatGentle 3s ease-in-out infinite;
+  }
+
+  .welcome-text {
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    color: rgba(44, 62, 80, 0.85);
+    max-width: 320px;
+    margin-bottom: 32px;
+  }
+
+  .begin-btn {
+    background: linear-gradient(180deg, #ffd23d 0%, #ffaa20 100%);
+    color: var(--ink);
+    border: none;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 14px 44px;
+    cursor: pointer;
+    border-radius: 30px;
+    box-shadow:
+      0 6px 0 #d68b10,
+      0 10px 20px rgba(255, 170, 32, 0.4);
+    transition: all 0.15s ease;
+  }
+  .begin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 0 #d68b10,
+      0 14px 24px rgba(255, 170, 32, 0.5);
+  }
+  .begin-btn:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 2px 0 #d68b10,
+      0 4px 8px rgba(255, 170, 32, 0.3);
+  }
+
+  /* Settings panel */
+  .settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 90vw);
+    background: white;
+    padding: 32px 24px;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+  }
+  .settings-panel.open { transform: translateX(0); }
+
+  .settings-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--ink);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #ffe4a8;
+    font-weight: 600;
+  }
+
+  .setting-row { margin-bottom: 18px; }
+
+  .setting-row label {
+    display: block;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: rgba(44, 62, 80, 0.7);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .setting-row input[type="range"] {
+    width: 100%;
+    accent-color: #ffaa20;
+  }
+
+  .setting-value {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    font-weight: 600;
+    float: right;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .checkbox-row input { accent-color: #ffaa20; width: 16px; height: 16px; }
+
+  .checkbox-row label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .close-settings {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #ffe4a8;
+    border: none;
+    color: var(--ink);
+    font-size: 22px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    line-height: 1;
+  }
+
+  @media (max-width: 420px) {
+    .top-bar { padding: 16px 16px 0; }
+    .bottom-area { padding: 0 16px 60px; }
+    .instruction { font-size: 26px; }
+    .welcome-title { font-size: 32px; }
+    .badge { bottom: 20px; left: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sky">
+  <div class="sun"></div>
+  <div class="cloud" style="top: 12%; left: 0; width: 60px; height: 18px; animation-duration: 60s;"></div>
+  <div class="cloud" style="top: 22%; left: 0; width: 45px; height: 14px; animation-duration: 80s; animation-delay: -20s;"></div>
+  <div class="cloud" style="top: 8%; left: 0; width: 70px; height: 20px; animation-duration: 70s; animation-delay: -40s;"></div>
+</div>
+
+<!-- Background world: floating islands + crystals -->
+<div class="world">
+  <!-- Left island -->
+  <svg class="island island-left" viewBox="0 0 140 120">
+    <defs>
+      <linearGradient id="islandGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#6cc35a"/>
+        <stop offset="40%" stop-color="#4aa83a"/>
+        <stop offset="100%" stop-color="#8a5a3a"/>
+      </linearGradient>
+      <linearGradient id="treeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#7ad06a"/>
+        <stop offset="100%" stop-color="#3a8a3a"/>
+      </linearGradient>
+    </defs>
+    <!-- Island base (chunky/blocky pixel-art style) -->
+    <path d="M 10 40 Q 10 25, 35 22 L 110 22 Q 130 25, 130 45 L 125 70 Q 115 95, 90 105 L 55 110 Q 25 100, 15 75 Z"
+          fill="url(#islandGrad)" stroke="#2a5a2a" stroke-width="2"/>
+    <!-- Grass top highlight -->
+    <ellipse cx="70" cy="26" rx="55" ry="8" fill="#8ee27a" opacity="0.6"/>
+    <!-- Tree 1 -->
+    <rect x="32" y="14" width="6" height="14" fill="#6a4020"/>
+    <circle cx="35" cy="10" r="11" fill="url(#treeGrad)"/>
+    <circle cx="30" cy="6" r="6" fill="#7ad06a"/>
+    <circle cx="40" cy="6" r="6" fill="#7ad06a"/>
+    <!-- Tree 2 -->
+    <rect x="76" y="8" width="7" height="16" fill="#6a4020"/>
+    <circle cx="80" cy="3" r="13" fill="url(#treeGrad)"/>
+    <circle cx="74" cy="0" r="7" fill="#7ad06a"/>
+    <circle cx="86" cy="0" r="7" fill="#7ad06a"/>
+    <!-- Crystal -->
+    <polygon points="105,30 112,38 105,52 98,38" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+    <polygon points="105,30 112,38 105,40" fill="#9ed8ec"/>
+  </svg>
+
+  <svg class="island island-right" viewBox="0 0 140 120">
+    <path d="M 10 40 Q 10 25, 35 22 L 110 22 Q 130 25, 130 45 L 125 70 Q 115 95, 90 105 L 55 110 Q 25 100, 15 75 Z"
+          fill="url(#islandGrad)" stroke="#2a5a2a" stroke-width="2"/>
+    <ellipse cx="70" cy="26" rx="55" ry="8" fill="#8ee27a" opacity="0.6"/>
+    <rect x="56" y="12" width="6" height="14" fill="#6a4020"/>
+    <circle cx="59" cy="8" r="11" fill="url(#treeGrad)"/>
+    <circle cx="54" cy="4" r="6" fill="#7ad06a"/>
+    <circle cx="64" cy="4" r="6" fill="#7ad06a"/>
+    <rect x="96" y="10" width="7" height="14" fill="#6a4020"/>
+    <circle cx="100" cy="5" r="12" fill="url(#treeGrad)"/>
+    <circle cx="94" cy="2" r="7" fill="#7ad06a"/>
+    <polygon points="30,32 37,40 30,54 23,40" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+    <polygon points="30,32 37,40 30,42" fill="#9ed8ec"/>
+  </svg>
+
+  <svg class="island island-bottom-left" viewBox="0 0 140 120">
+    <path d="M 10 40 Q 10 25, 35 22 L 110 22 Q 130 25, 130 45 L 125 70 Q 115 95, 90 105 L 55 110 Q 25 100, 15 75 Z"
+          fill="url(#islandGrad)" stroke="#2a5a2a" stroke-width="2"/>
+    <ellipse cx="70" cy="26" rx="55" ry="8" fill="#8ee27a" opacity="0.6"/>
+    <rect x="44" y="10" width="6" height="14" fill="#6a4020"/>
+    <circle cx="47" cy="6" r="11" fill="url(#treeGrad)"/>
+    <circle cx="42" cy="2" r="6" fill="#7ad06a"/>
+    <circle cx="52" cy="2" r="6" fill="#7ad06a"/>
+    <polygon points="90,32 97,40 90,54 83,40" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+    <polygon points="90,32 97,40 90,42" fill="#9ed8ec"/>
+  </svg>
+
+  <svg class="island island-bottom-right" viewBox="0 0 140 120">
+    <path d="M 10 40 Q 10 25, 35 22 L 110 22 Q 130 25, 130 45 L 125 70 Q 115 95, 90 105 L 55 110 Q 25 100, 15 75 Z"
+          fill="url(#islandGrad)" stroke="#2a5a2a" stroke-width="2"/>
+    <ellipse cx="70" cy="26" rx="55" ry="8" fill="#8ee27a" opacity="0.6"/>
+    <rect x="70" y="10" width="6" height="14" fill="#6a4020"/>
+    <circle cx="73" cy="6" r="11" fill="url(#treeGrad)"/>
+    <circle cx="68" cy="2" r="6" fill="#7ad06a"/>
+    <circle cx="78" cy="2" r="6" fill="#7ad06a"/>
+    <polygon points="35,30 42,38 35,52 28,38" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+  </svg>
+
+  <svg class="island island-top-mid" viewBox="0 0 140 120">
+    <path d="M 10 40 Q 10 25, 35 22 L 110 22 Q 130 25, 130 45 L 125 70 Q 115 95, 90 105 L 55 110 Q 25 100, 15 75 Z"
+          fill="url(#islandGrad)" stroke="#2a5a2a" stroke-width="2"/>
+    <ellipse cx="70" cy="26" rx="55" ry="8" fill="#8ee27a" opacity="0.6"/>
+    <rect x="64" y="12" width="6" height="14" fill="#6a4020"/>
+    <circle cx="67" cy="8" r="10" fill="url(#treeGrad)"/>
+  </svg>
+
+  <!-- Floating crystals -->
+  <svg class="crystal crystal-1" viewBox="0 0 22 30">
+    <polygon points="11,2 20,12 11,28 2,12" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+    <polygon points="11,2 20,12 11,14" fill="#aedef0"/>
+  </svg>
+  <svg class="crystal crystal-2" viewBox="0 0 22 30">
+    <polygon points="11,2 20,12 11,28 2,12" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+    <polygon points="11,2 20,12 11,14" fill="#aedef0"/>
+  </svg>
+  <svg class="crystal crystal-3" viewBox="0 0 22 30">
+    <polygon points="11,2 20,12 11,28 2,12" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+    <polygon points="11,2 20,12 11,14" fill="#aedef0"/>
+  </svg>
+  <svg class="crystal crystal-4" viewBox="0 0 22 30">
+    <polygon points="11,2 20,12 11,28 2,12" fill="#5ab4d8" stroke="#2a6a8a" stroke-width="1.5"/>
+    <polygon points="11,2 20,12 11,14" fill="#aedef0"/>
+  </svg>
+</div>
+
+<!-- The Blob stage -->
+<div class="blob-stage">
+  <div class="aura" id="aura"></div>
+  <div class="aura-inner" id="aura-inner"></div>
+  <div class="sparkles">
+    <svg class="sparkle" style="--dist: 130px; animation-delay: 0s;" viewBox="0 0 8 8"><path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="currentColor"/></svg>
+    <svg class="sparkle" style="--dist: 130px; animation-delay: -1.5s;" viewBox="0 0 8 8"><path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="currentColor"/></svg>
+    <svg class="sparkle" style="--dist: 130px; animation-delay: -3s;" viewBox="0 0 8 8"><path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="currentColor"/></svg>
+    <svg class="sparkle" style="--dist: 130px; animation-delay: -4.5s;" viewBox="0 0 8 8"><path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="currentColor"/></svg>
+  </div>
+  <div class="blob" id="blob">
+    <div class="blob-body">
+      <div class="face">
+        <div class="eyes">
+          <div class="eye"></div>
+          <div class="eye"></div>
+        </div>
+        <div class="mouth" id="mouth"></div>
+      </div>
+      <div class="cheek left"></div>
+      <div class="cheek right"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div class="bpm-pill">
+    <svg class="heart-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 21s-7-4.5-9-9.5C1.5 7 4 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 3 0 5.5 3 4 7.5-2 5-9 9.5-9 9.5z"/>
+    </svg>
+    <div class="bpm-text">
+      <span class="bpm-num" id="bpm-top">82</span>
+      <span class="bpm-label">BPM</span>
+    </div>
+  </div>
+  <button class="settings-btn" id="settings-toggle" aria-label="Settings">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Bottom area -->
+<div class="bottom-area">
+  <div class="readouts" id="readouts">
+    <div class="readout">
+      <div class="readout-label">HRV</div>
+      <div class="readout-value" id="hrv-val">58</div>
+    </div>
+    <div class="readout">
+      <div class="readout-label">Resp</div>
+      <div class="readout-value" id="resp-val">6.5</div>
+    </div>
+  </div>
+  <div class="instruction" id="instruction">Inhale</div>
+  <div class="subtitle" id="subtitle">Breathe in slowly through your nose</div>
+  <div class="cycle-counter" id="cycle-counter">Cycle 1 of 5</div>
+</div>
+
+<!-- Good Job badge -->
+<div class="badge" id="badge">
+  <svg class="badge-star" viewBox="0 0 32 32">
+    <defs>
+      <linearGradient id="starGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#fff4a8"/>
+        <stop offset="100%" stop-color="#ffd23d"/>
+      </linearGradient>
+    </defs>
+    <path d="M16 2 L20 12 L31 13 L22 20 L25 31 L16 25 L7 31 L10 20 L1 13 L12 12 Z"
+          fill="url(#starGrad)" stroke="#d68b10" stroke-width="1.5" stroke-linejoin="round"/>
+  </svg>
+  <div class="badge-text">
+    <div class="badge-title">Good Job!</div>
+    <div class="badge-sub">Keep breathing steadily</div>
+  </div>
+</div>
+
+<!-- Welcome overlay -->
+<div class="welcome" id="welcome">
+  <div class="welcome-emoji">🌿</div>
+  <div class="welcome-title">Breathe</div>
+  <div class="welcome-text" id="welcome-text">Welcome to your paced breathing session. Take a moment to settle in and let your little buddy guide your breath.</div>
+  <button class="begin-btn" id="begin-btn">Let's Begin</button>
+</div>
+
+<!-- Settings panel -->
+<div class="settings-panel" id="settings-panel">
+  <button class="close-settings" id="close-settings">×</button>
+  <div class="settings-title">Session</div>
+
+  <div class="setting-row">
+    <label>Inhale <span class="setting-value" id="inhale-val">4.6s</span></label>
+    <input type="range" id="inhale-slider" min="2000" max="8000" step="100" value="4600">
+  </div>
+
+  <div class="setting-row">
+    <label>Exhale <span class="setting-value" id="exhale-val">4.6s</span></label>
+    <input type="range" id="exhale-slider" min="2000" max="8000" step="100" value="4600">
+  </div>
+
+  <div class="setting-row">
+    <label>Cycles <span class="setting-value" id="count-val">5</span></label>
+    <input type="range" id="count-slider" min="1" max="30" step="1" value="5">
+  </div>
+
+  <div class="settings-title" style="margin-top: 28px;">Display</div>
+
+  <div class="checkbox-row">
+    <input type="checkbox" id="show-hrv" checked>
+    <label for="show-hrv">Show HRV</label>
+  </div>
+  <div class="checkbox-row">
+    <input type="checkbox" id="show-resp" checked>
+    <label for="show-resp">Show Respiration</label>
+  </div>
+  <div class="checkbox-row">
+    <input type="checkbox" id="show-bpm" checked>
+    <label for="show-bpm">Show BPM</label>
+  </div>
+</div>
+
+<script>
+  // ===== Parse URL params =====
+  const params = new URLSearchParams(window.location.search);
+  let config = {
+    inhale: parseInt(params.get('inhale')) || 4600,
+    exhale: parseInt(params.get('exhale')) || 4600,
+    count: parseInt(params.get('count')) || 5,
+    showHrv: params.get('showHrv') !== '0',
+    showResp: params.get('showRespiration') !== '0',
+    showBpm: params.get('showBpm') !== '0',
+    welcome: params.get('welcome') || 'Welcome to your paced breathing session. Take a moment to settle in and let your little buddy guide your breath.'
+  };
+
+  document.getElementById('welcome-text').textContent = config.welcome;
+
+  function applyTimings() {
+    document.documentElement.style.setProperty('--inhale', config.inhale + 'ms');
+    document.documentElement.style.setProperty('--exhale', config.exhale + 'ms');
+  }
+  applyTimings();
+
+  function applyDisplayToggles() {
+    document.getElementById('readouts').style.display =
+      (config.showHrv || config.showResp) ? 'flex' : 'none';
+    document.querySelector('#readouts .readout:nth-child(1)').style.display =
+      config.showHrv ? 'block' : 'none';
+    document.querySelector('#readouts .readout:nth-child(2)').style.display =
+      config.showResp ? 'block' : 'none';
+    document.querySelector('.bpm-pill').style.display = config.showBpm ? 'flex' : 'none';
+  }
+  applyDisplayToggles();
+
+  // ===== Elements =====
+  const blob = document.getElementById('blob');
+  const aura = document.getElementById('aura');
+  const auraInner = document.getElementById('aura-inner');
+  const mouth = document.getElementById('mouth');
+  const instruction = document.getElementById('instruction');
+  const subtitle = document.getElementById('subtitle');
+  const cycleCounter = document.getElementById('cycle-counter');
+  const bpmTop = document.getElementById('bpm-top');
+  const hrvVal = document.getElementById('hrv-val');
+  const respVal = document.getElementById('resp-val');
+  const badge = document.getElementById('badge');
+
+  let running = false;
+  let currentCycle = 0;
+  let phaseTimeout = null;
+  let metricsInterval = null;
+
+  function setPhase(phase) {
+    [blob, aura, auraInner].forEach(el => {
+      el.classList.remove('inhaling', 'exhaling');
+    });
+    void blob.offsetWidth; // force reflow
+    if (phase) {
+      blob.classList.add(phase);
+      aura.classList.add(phase);
+      auraInner.classList.add(phase);
+    }
+  }
+
+  function setInhale() {
+    setPhase('inhaling');
+    instruction.style.opacity = '0';
+    subtitle.style.opacity = '0';
+    setTimeout(() => {
+      instruction.textContent = 'Inhale';
+      subtitle.textContent = 'Breathe in slowly through your nose';
+      mouth.style.width = '10px';
+      mouth.style.height = '10px';
+      mouth.style.borderRadius = '50%';
+      mouth.style.border = '2.5px solid var(--ink)';
+      instruction.style.opacity = '1';
+      subtitle.style.opacity = '1';
+    }, 250);
+  }
+
+  function setExhale() {
+    setPhase('exhaling');
+    instruction.style.opacity = '0';
+    subtitle.style.opacity = '0';
+    setTimeout(() => {
+      instruction.textContent = 'Exhale';
+      subtitle.textContent = 'Let it out gently through your mouth';
+      mouth.style.width = '16px';
+      mouth.style.height = '8px';
+      mouth.style.borderRadius = '0 0 16px 16px';
+      mouth.style.border = '2.5px solid var(--ink)';
+      mouth.style.borderTop = 'none';
+      instruction.style.opacity = '1';
+      subtitle.style.opacity = '1';
+    }, 250);
+  }
+
+  function setComplete() {
+    setPhase(null);
+    instruction.style.opacity = '0';
+    subtitle.style.opacity = '0';
+    setTimeout(() => {
+      instruction.textContent = 'All done! 🌟';
+      subtitle.textContent = 'You did wonderfully';
+      instruction.style.opacity = '1';
+      subtitle.style.opacity = '1';
+    }, 250);
+  }
+
+  function showBadge(title, sub) {
+    badge.querySelector('.badge-title').textContent = title;
+    badge.querySelector('.badge-sub').textContent = sub;
+    badge.classList.add('show');
+    setTimeout(() => badge.classList.remove('show'), 3500);
+  }
+
+  function updateMetrics() {
+    const baseBpm = 82;
+    const drift = Math.max(0, currentCycle - 1) * 0.6;
+    const noise = Math.sin(Date.now() / 700) * 1.2;
+    const bpm = Math.round(baseBpm - drift + noise);
+    bpmTop.textContent = bpm;
+
+    const baseHrv = 58;
+    const hrv = Math.round(baseHrv + currentCycle * 0.8 + Math.sin(Date.now() / 900) * 2);
+    hrvVal.textContent = hrv;
+
+    const cycleSec = (config.inhale + config.exhale) / 1000;
+    respVal.textContent = (60 / cycleSec).toFixed(1);
+  }
+
+  function runCycle() {
+    if (!running) return;
+    if (currentCycle >= config.count) {
+      setComplete();
+      cycleCounter.textContent = `Complete · ${config.count} cycles`;
+      running = false;
+      clearInterval(metricsInterval);
+      setTimeout(() => showBadge('Amazing!', 'You completed your session'), 600);
+      return;
+    }
+    currentCycle++;
+    cycleCounter.textContent = `Cycle ${currentCycle} of ${config.count}`;
+
+    if (currentCycle === 2) {
+      setTimeout(() => showBadge('Good Job!', 'Keep breathing steadily'), 200);
+    } else if (currentCycle === Math.ceil(config.count / 2)) {
+      setTimeout(() => showBadge('Halfway there!', 'You\'re doing great'), 200);
+    }
+
+    setInhale();
+    phaseTimeout = setTimeout(() => {
+      if (!running) return;
+      setExhale();
+      phaseTimeout = setTimeout(runCycle, config.exhale);
+    }, config.inhale);
+  }
+
+  function startSession() {
+    running = true;
+    currentCycle = 0;
+    updateMetrics();
+    metricsInterval = setInterval(updateMetrics, 600);
+    runCycle();
+  }
+
+  // ===== UI handlers =====
+  document.getElementById('begin-btn').addEventListener('click', () => {
+    document.getElementById('welcome').classList.add('hidden');
+    setTimeout(startSession, 400);
+  });
+
+  const settingsPanel = document.getElementById('settings-panel');
+  document.getElementById('settings-toggle').addEventListener('click', () => {
+    settingsPanel.classList.add('open');
+  });
+  document.getElementById('close-settings').addEventListener('click', () => {
+    settingsPanel.classList.remove('open');
+  });
+
+  const inhaleSlider = document.getElementById('inhale-slider');
+  const exhaleSlider = document.getElementById('exhale-slider');
+  const countSlider = document.getElementById('count-slider');
+
+  inhaleSlider.value = config.inhale;
+  exhaleSlider.value = config.exhale;
+  countSlider.value = config.count;
+  document.getElementById('inhale-val').textContent = (config.inhale / 1000).toFixed(1) + 's';
+  document.getElementById('exhale-val').textContent = (config.exhale / 1000).toFixed(1) + 's';
+  document.getElementById('count-val').textContent = config.count;
+  document.getElementById('show-hrv').checked = config.showHrv;
+  document.getElementById('show-resp').checked = config.showResp;
+  document.getElementById('show-bpm').checked = config.showBpm;
+
+  inhaleSlider.addEventListener('input', e => {
+    config.inhale = parseInt(e.target.value);
+    document.getElementById('inhale-val').textContent = (config.inhale / 1000).toFixed(1) + 's';
+    applyTimings();
+  });
+  exhaleSlider.addEventListener('input', e => {
+    config.exhale = parseInt(e.target.value);
+    document.getElementById('exhale-val').textContent = (config.exhale / 1000).toFixed(1) + 's';
+    applyTimings();
+  });
+  countSlider.addEventListener('input', e => {
+    config.count = parseInt(e.target.value);
+    document.getElementById('count-val').textContent = config.count;
+  });
+  document.getElementById('show-hrv').addEventListener('change', e => {
+    config.showHrv = e.target.checked;
+    applyDisplayToggles();
+  });
+  document.getElementById('show-resp').addEventListener('change', e => {
+    config.showResp = e.target.checked;
+    applyDisplayToggles();
+  });
+  document.getElementById('show-bpm').addEventListener('change', e => {
+    config.showBpm = e.target.checked;
+    applyDisplayToggles();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.welcome') || e.target.closest('.settings-panel') ||
+        e.target.closest('.settings-btn') || e.target.closest('.badge')) return;
+    if (!running && currentCycle >= config.count) {
+      startSession();
+    }
+  });
+</script>
+
+</body>
+</html>
