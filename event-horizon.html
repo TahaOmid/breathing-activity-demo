@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Horizon · A Breathing Exercise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;0,9..144,400;1,9..144,200;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --ink: #f5ecd9;
+    --ink-dim: rgba(245, 236, 217, 0.55);
+    --ink-faint: rgba(245, 236, 217, 0.18);
+    --accent: #ffb86b;
+    --accent-warm: #ff7a3d;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%; width: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+  body {
+    color: var(--ink);
+    font-family: 'Fraunces', 'Georgia', serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  canvas#bh {
+    position: fixed; inset: 0;
+    z-index: 1;
+    display: block;
+  }
+
+  /* ---------- Start Screen ---------- */
+  #start {
+    position: fixed; inset: 0;
+    z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: radial-gradient(ellipse at center, rgba(8,6,26,0.35) 0%, rgba(0,0,0,0.78) 75%);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    transition: opacity 1s ease, visibility 1s ease;
+  }
+  #start.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  #start .eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.55em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 2.5rem;
+    padding-left: 0.55em; /* optical balance */
+    animation: fadeUp 1.2s 0.1s both ease;
+  }
+
+  #start h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 200;
+    font-size: clamp(2.7rem, 7vw, 5rem);
+    letter-spacing: 0.03em;
+    margin: 0 0 2.5rem;
+    font-variation-settings: "opsz" 144;
+    line-height: 1;
+    animation: fadeUp 1.4s 0.25s both ease;
+  }
+
+  #start h1 em {
+    font-style: italic;
+    font-weight: 200;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(255, 184, 107, 0.25);
+  }
+
+  #start .body {
+    max-width: 34rem;
+    font-size: clamp(1.02rem, 1.35vw, 1.18rem);
+    line-height: 1.85;
+    color: var(--ink-dim);
+    margin: 0 0 3.5rem;
+    animation: fadeUp 1.6s 0.5s both ease;
+  }
+  #start .body p { margin: 0 0 1.1rem; }
+  #start .body p:last-child { margin-bottom: 0; }
+  #start .body em { font-style: italic; color: var(--ink); }
+  #start .body .small {
+    display: block;
+    margin-top: 1.6rem;
+    font-size: 0.85em;
+    color: rgba(245, 236, 217, 0.4);
+    font-style: italic;
+  }
+
+  #start button {
+    background: transparent;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink);
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 0.85rem;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    padding: 1.15rem 3.4rem 1.15rem 3.85rem; /* extra right for letter-spacing */
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    animation: fadeUp 1.8s 0.75s both ease;
+  }
+  #start button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    letter-spacing: 0.55em;
+    padding: 1.15rem 3.7rem 1.15rem 4.25rem;
+    box-shadow: 0 0 40px rgba(255, 184, 107, 0.15);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- Exercise UI ---------- */
+  #ui {
+    position: fixed; inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3.5rem 3rem;
+    opacity: 0;
+    transition: opacity 1.2s ease 0.3s;
+  }
+  #ui.visible { opacity: 1; }
+
+  #top-bar {
+    display: flex;
+    justify-content: center;
+  }
+
+  #rate-display {
+    text-align: center;
+  }
+  #rate-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 200;
+    font-size: clamp(3rem, 5.5vw, 4.5rem);
+    font-variation-settings: "opsz" 144;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  #rate-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-top: 0.85rem;
+    padding-left: 0.45em;
+  }
+
+  #phase-indicator {
+    position: fixed;
+    bottom: 6.5rem;
+    left: 0; right: 0;
+    text-align: center;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  #phase-indicator.visible { opacity: 1; }
+
+  #phase-text {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 200;
+    font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+    letter-spacing: 0.55em;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: inline-block;
+    padding-left: 0.55em;
+    transition: color 0.6s ease, transform 4s cubic-bezier(.45,.05,.55,.95);
+  }
+  #phase-text.inhale { color: var(--accent); transform: scale(1.12); }
+  #phase-text.exhale { color: var(--ink); transform: scale(0.92); }
+
+  #progress {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    height: 6px;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .tick {
+    flex: 1;
+    max-width: 16px;
+    min-width: 4px;
+    height: 1.5px;
+    background: var(--ink-faint);
+    transition: all 0.7s ease;
+  }
+  .tick.done {
+    background: var(--accent);
+    height: 2.5px;
+    box-shadow: 0 0 8px rgba(255, 184, 107, 0.5);
+  }
+  .tick.current {
+    background: var(--ink);
+    height: 3px;
+  }
+
+  /* ---------- Finish Screen ---------- */
+  #finish {
+    position: fixed; inset: 0;
+    z-index: 20;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: radial-gradient(ellipse at center, rgba(8,6,26,0.55) 0%, rgba(0,0,0,0.92) 80%);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0; visibility: hidden;
+    transition: opacity 2s ease, visibility 2s ease;
+  }
+  #finish.show { opacity: 1; visibility: visible; }
+  #finish h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 200;
+    font-style: italic;
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    margin: 0 0 1.4rem;
+  }
+  #finish p {
+    color: var(--ink-dim);
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    margin: 0 0 2.5rem;
+    font-style: italic;
+  }
+  #finish button {
+    background: transparent;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink-dim);
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 0.78rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    padding: 1rem 2.8rem 1rem 3.2rem;
+    cursor: pointer;
+    transition: all 0.4s ease;
+  }
+  #finish button:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    letter-spacing: 0.5em;
+  }
+
+  @media (max-width: 600px) {
+    #ui { padding: 2rem 1.5rem; }
+    #phase-indicator { bottom: 5rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bh"></canvas>
+
+<div id="start">
+  <div class="eyebrow">A breathing exercise</div>
+  <h1>Event <em>Horizon</em></h1>
+  <div class="body">
+    <p>For the next few minutes, you are not a person.<br>You are <em>a black hole</em>.</p>
+    <p>Astronauts are stranded in the dark around you.<br>Inhale, and pull them into your gravity.<br>Exhale, and breathe them back into orbit.</p>
+  </div>
+  <button id="begin">Begin</button>
+</div>
+
+<div id="ui">
+  <div id="top-bar">
+    <div id="rate-display">
+      <div id="rate-num">—</div>
+      <div id="rate-label">breaths per minute</div>
+    </div>
+  </div>
+  <div id="progress"></div>
+</div>
+
+<div id="phase-indicator">
+  <div id="phase-text">Inhale</div>
+</div>
+
+<div id="finish">
+  <h2>The astronauts are home.</h2>
+</div>
+
+<script>
+/* =====================================================
+   EVENT HORIZON — A cosmic breathing exercise
+   ===================================================== */
+
+const canvas = document.getElementById('bh');
+const ctx = canvas.getContext('2d');
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+let W, H, cx, cy;
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx = W / 2;
+  cy = H / 2;
+}
+resize();
+window.addEventListener('resize', () => { resize(); initStars(); });
+
+/* ---------- Background stars ---------- */
+const stars = [];
+function initStars() {
+  stars.length = 0;
+  const count = Math.floor((W * H) / 5500);
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.3 + 0.2,
+      a: Math.random() * 0.6 + 0.25,
+      tw: 0.004 + Math.random() * 0.018,
+      ph: Math.random() * Math.PI * 2
+    });
+  }
+}
+initStars();
+
+/* ---------- Accretion disk particles ---------- */
+const DISK_COUNT = 500;
+const diskParticles = [];
+const eventRadius = () => Math.min(W, H) * 0.062;
+const diskInner = () => eventRadius() * 1.05;
+const diskOuter = () => Math.min(W, H) * 0.24;
+
+function createDiskParticle() {
+  const t = Math.pow(Math.random(), 1.4); // bias toward inner
+  const r = diskInner() + t * (diskOuter() - diskInner());
+  return {
+    r,
+    angle: Math.random() * Math.PI * 2,
+    speed: 0.008 + (1 - t) * 0.03,
+    a: 0.35 + Math.random() * 0.65,
+    size: 0.5 + Math.random() * 1.6,
+    hueShift: (Math.random() - 0.5) * 20
+  };
+}
+for (let i = 0; i < DISK_COUNT; i++) diskParticles.push(createDiskParticle());
+
+/* ---------- Astronauts (stranded in space) ---------- */
+/* state machine:
+   floating  — drifting in space; gentle velocity & slow tumble
+   pulled    — being sucked into the black hole during inhale
+   ejected   — emerging from the singularity during exhale,
+               transitions to 'floating' once fully grown and clear of the disk
+*/
+const astronauts = [];
+const INITIAL_ASTRONAUTS = Math.max(16, Math.min(28, Math.floor((W * H) / 90000)));
+
+function pullCount()  { return 5 + Math.floor(Math.random() * 3); } /* 5, 6, or 7 */
+function ejectCount() { return 5 + Math.floor(Math.random() * 3); } /* 5, 6, or 7 */
+
+function createFloater() {
+  let x, y, dist = 0, attempts = 0;
+  /* keep them clear of the disk so they read as "in space" not "in the maelstrom" */
+  do {
+    x = Math.random() * W;
+    y = Math.random() * H;
+    dist = Math.hypot(x - cx, y - cy);
+    attempts++;
+  } while (dist < diskOuter() * 1.7 && attempts < 60);
+
+  return {
+    state: 'floating',
+    x, y,
+    vx: (Math.random() - 0.5) * 0.18,
+    vy: (Math.random() - 0.5) * 0.18,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.0035,
+    size: 13 + Math.random() * 9,
+    born: 0,
+    pullStartTime: 0, pullDuration: 0,
+    pullStartX: 0, pullStartY: 0,
+    pullStartRot: 0, pullEndRot: 0,
+  };
+}
+
+function initAstronauts() {
+  astronauts.length = 0;
+  for (let i = 0; i < INITIAL_ASTRONAUTS; i++) astronauts.push(createFloater());
+}
+
+function pullAstronauts(now, count) {
+  const floaters = astronauts.filter(a => a.state === 'floating');
+  for (let i = 0; i < count && floaters.length > 0; i++) {
+    const idx = Math.floor(Math.random() * floaters.length);
+    const target = floaters.splice(idx, 1)[0];
+    target.state = 'pulled';
+    target.pullStartTime = now;
+    target.pullDuration = INHALE_MS * (0.78 + Math.random() * 0.22);
+    target.pullStartX = target.x;
+    target.pullStartY = target.y;
+    target.pullStartRot = target.rot;
+    const extraSpins = 2.5 + Math.random() * 3;
+    target.pullEndRot = target.rot + (Math.random() < 0.5 ? -1 : 1) * extraSpins * Math.PI * 2;
+  }
+}
+
+function ejectAstronauts(now, count) {
+  /* distribute around the circle so the puff reads as a starburst, not a clump */
+  const baseAngle = Math.random() * Math.PI * 2;
+  for (let i = 0; i < count; i++) {
+    const angle = baseAngle + (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.45;
+    const startR = eventRadius() * (0.1 + Math.random() * 0.15);
+    const speed = 1.4 + Math.random() * 1.6;
+    astronauts.push({
+      state: 'ejected',
+      x: cx + Math.cos(angle) * startR,
+      y: cy + Math.sin(angle) * startR,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.014,
+      size: 13 + Math.random() * 9,
+      born: now,
+      pullStartTime: 0, pullDuration: 0,
+      pullStartX: 0, pullStartY: 0,
+      pullStartRot: 0, pullEndRot: 0,
+    });
+  }
+}
+
+/* ---------- Astronaut figure ---------- */
+function roundRect(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+/* draws astronaut centered at origin, head up; s = scale unit (~ shoulder width) */
+function drawAstronautShape(s) {
+  const suit       = '#ebe6dc';
+  const suitShadow = '#9d978a';
+  const accent     = '#2c2f3a';
+  const visor      = '#0a0a1a';
+  const visorGlow  = '#ffd09c';
+  const ledA       = '#ffb86b';
+  const ledB       = '#6dba94';
+
+  /* backpack (life support, drawn behind body) */
+  ctx.fillStyle = suitShadow;
+  roundRect(-s * 0.42, -s * 0.05, s * 0.84, s * 0.7, s * 0.08); ctx.fill();
+
+  /* boots */
+  ctx.fillStyle = accent;
+  roundRect(-s * 0.4, s * 0.93, s * 0.32, s * 0.18, s * 0.05); ctx.fill();
+  roundRect( s * 0.08, s * 0.93, s * 0.32, s * 0.18, s * 0.05); ctx.fill();
+
+  /* legs */
+  ctx.fillStyle = suit;
+  roundRect(-s * 0.38, s * 0.4, s * 0.32, s * 0.58, s * 0.07); ctx.fill();
+  roundRect( s * 0.06, s * 0.4, s * 0.32, s * 0.58, s * 0.07); ctx.fill();
+
+  /* arms */
+  roundRect(-s * 0.74, -s * 0.05, s * 0.3, s * 0.6, s * 0.09); ctx.fill();
+  roundRect( s * 0.44, -s * 0.05, s * 0.3, s * 0.6, s * 0.09); ctx.fill();
+
+  /* torso */
+  roundRect(-s * 0.38, -s * 0.1, s * 0.76, s * 0.6, s * 0.09); ctx.fill();
+
+  /* chest control panel */
+  ctx.fillStyle = accent;
+  roundRect(-s * 0.16, s * 0.1, s * 0.32, s * 0.22, s * 0.04); ctx.fill();
+
+  /* status LEDs */
+  ctx.fillStyle = ledA;
+  ctx.beginPath(); ctx.arc(-s * 0.06, s * 0.2, s * 0.03, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = ledB;
+  ctx.beginPath(); ctx.arc( s * 0.06, s * 0.2, s * 0.03, 0, Math.PI * 2); ctx.fill();
+
+  /* helmet */
+  ctx.fillStyle = suit;
+  ctx.beginPath(); ctx.arc(0, -s * 0.45, s * 0.42, 0, Math.PI * 2); ctx.fill();
+
+  /* visor */
+  ctx.fillStyle = visor;
+  ctx.beginPath(); ctx.ellipse(0, -s * 0.43, s * 0.3, s * 0.28, 0, 0, Math.PI * 2); ctx.fill();
+
+  /* visor reflection — gold catch-light */
+  ctx.save();
+  ctx.globalAlpha = ctx.globalAlpha * 0.55;
+  ctx.fillStyle = visorGlow;
+  ctx.beginPath(); ctx.ellipse(-s * 0.11, -s * 0.5, s * 0.09, s * 0.05, 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+/* seed the void */
+initAstronauts();
+
+/* ---------- Breathing state ---------- */
+let phase = 'inhale';
+let phaseStartTime = 0;
+let cycleCount = 0;
+let exerciseStartTime = 0;
+let running = false;
+let finished = false;
+const INHALE_MS = 4000;
+const EXHALE_MS = 4000;
+const TOTAL_CYCLES = 33;
+
+/* ---------- DOM refs ---------- */
+const startScreen = document.getElementById('start');
+const ui = document.getElementById('ui');
+const phaseIndicator = document.getElementById('phase-indicator');
+const phaseText = document.getElementById('phase-text');
+const rateNum = document.getElementById('rate-num');
+const finishScreen = document.getElementById('finish');
+const progressEl = document.getElementById('progress');
+
+/* Build progress ticks */
+for (let i = 0; i < TOTAL_CYCLES; i++) {
+  const t = document.createElement('div');
+  t.className = 'tick';
+  progressEl.appendChild(t);
+}
+const ticks = [...progressEl.children];
+
+/* ---------- UI helpers ---------- */
+function setPhase(newPhase) {
+  phase = newPhase;
+  phaseText.textContent = newPhase === 'inhale' ? 'Inhale' : 'Exhale';
+  phaseText.classList.remove('inhale', 'exhale');
+  // force reflow so transform transition retriggers
+  void phaseText.offsetWidth;
+  phaseText.classList.add(newPhase);
+}
+
+function updateProgressUI() {
+  ticks.forEach((t, i) => {
+    t.classList.remove('current', 'done');
+    if (i < cycleCount) t.classList.add('done');
+    else if (i === cycleCount) t.classList.add('current');
+  });
+}
+
+function updateRateUI(now) {
+  if (!running) return;
+
+  /* ===================================================================
+   *  ▶ GARMIN WATCH INTEGRATION POINT — RESPIRATION RATE
+   * -------------------------------------------------------------------
+   *  Replace the calculation below with the live respiration value
+   *  from the Garmin watch. Push the current breaths-per-minute into
+   *  `rateNum.textContent`, formatted to one decimal.
+   *
+   *  Example (Connect IQ companion via Bluetooth / WebSocket bridge):
+   *
+   *      garminSensor.on('respiration', (bpm) => {
+   *        rateNum.textContent = bpm.toFixed(1);
+   *      });
+   *
+   *  Or, if polling:
+   *
+   *      const bpm = await garminSensor.getRespirationRate();
+   *      rateNum.textContent = bpm.toFixed(1);
+   *
+   *  The block below is a FALLBACK that derives bpm from completed
+   *  breath cycles over elapsed time so the UI works for testing
+   *  without a watch connected. Delete it once the watch is wired in.
+   * =================================================================== */
+
+  const elapsedMin = (now - exerciseStartTime) / 60000;
+  if (elapsedMin < 0.04) return;
+  const cycleMs = INHALE_MS + EXHALE_MS;
+  const phaseFrac = phase === 'inhale'
+    ? ((now - phaseStartTime) / cycleMs)
+    : 0.5 + ((now - phaseStartTime) / cycleMs);
+  const totalCycles = cycleCount + Math.min(phaseFrac, 1);
+  const rate = totalCycles / elapsedMin;
+  rateNum.textContent = rate.toFixed(1);
+}
+
+/* ---------- Render ---------- */
+let prevTime = 0;
+function loop(now) {
+  if (!prevTime) prevTime = now;
+  const dt = Math.min(now - prevTime, 50);
+  prevTime = now;
+
+  /* ---- breathing state update ---- */
+  if (running && !finished) {
+    const phaseDur = phase === 'inhale' ? INHALE_MS : EXHALE_MS;
+    if (now - phaseStartTime >= phaseDur) {
+      if (phase === 'inhale') {
+        setPhase('exhale');
+        ejectAstronauts(now, ejectCount());
+      } else {
+        cycleCount++;
+        updateProgressUI();
+        if (cycleCount >= TOTAL_CYCLES) {
+          running = false;
+          finished = true;
+          phaseIndicator.classList.remove('visible');
+          setTimeout(() => finishScreen.classList.add('show'), 1200);
+        } else {
+          setPhase('inhale');
+          pullAstronauts(now, pullCount());
+        }
+      }
+      phaseStartTime = now;
+    }
+    updateRateUI(now);
+  }
+
+  render(now, dt);
+  requestAnimationFrame(loop);
+}
+
+function render(now, dt) {
+  /* fade frame with cosmic gradient to leave subtle motion trails */
+  const fadeGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.75);
+  fadeGrad.addColorStop(0, 'rgba(10, 8, 28, 0.22)');
+  fadeGrad.addColorStop(1, 'rgba(0, 0, 4, 0.32)');
+  ctx.fillStyle = fadeGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  /* ---------- stars ---------- */
+  for (const s of stars) {
+    s.ph += s.tw;
+    const flicker = (Math.sin(s.ph) + 1) * 0.5;
+    ctx.globalAlpha = s.a * (0.45 + flicker * 0.55);
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  /* phase-driven intensity (smoothed) */
+  const cycleDur = INHALE_MS + EXHALE_MS;
+  const phaseDur = phase === 'inhale' ? INHALE_MS : EXHALE_MS;
+  const phaseProgress = running ? Math.min((now - phaseStartTime) / phaseDur, 1) : 0.5;
+  // 0 = empty, 1 = full inhale held
+  const inhaleness = phase === 'inhale'
+    ? smoothstep(phaseProgress)
+    : 1 - smoothstep(phaseProgress);
+
+  /* ---------- pulled astronauts (drawn BEHIND the event horizon) ---------- */
+  for (let i = astronauts.length - 1; i >= 0; i--) {
+    const a = astronauts[i];
+    if (a.state !== 'pulled') continue;
+
+    const t = Math.min((now - a.pullStartTime) / a.pullDuration, 1);
+    const eased = Math.pow(t, 2.4); /* gravitational acceleration */
+
+    const x   = a.pullStartX + (cx - a.pullStartX) * eased;
+    const y   = a.pullStartY + (cy - a.pullStartY) * eased;
+    const rot = a.pullStartRot + (a.pullEndRot - a.pullStartRot) * eased;
+
+    if (t >= 1) { astronauts.splice(i, 1); continue; }
+
+    const scale   = 1 - eased * 0.85;
+    const stretch = 1 + eased * 1.4;            /* spaghettification */
+    const radial  = Math.atan2(cy - y, cx - x);
+    const size    = a.size * scale;
+    if (size < 0.5) continue;
+
+    ctx.save();
+    ctx.translate(x, y);
+
+    /* radial stretch toward the singularity */
+    ctx.rotate(radial);
+    ctx.scale(stretch, 1);
+    ctx.rotate(-radial);
+
+    /* tumbling */
+    ctx.rotate(rot);
+
+    drawAstronautShape(size);
+    ctx.restore();
+  }
+
+  /* ---------- accretion disk ---------- */
+  const eR = eventRadius();
+  const dInner = diskInner();
+  const dOuter = diskOuter();
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  /* outer halo */
+  const haloGrad = ctx.createRadialGradient(0, 0, eR * 0.6, 0, 0, dOuter * 1.6);
+  const haloI = 0.42 + inhaleness * 0.3;
+  haloGrad.addColorStop(0,   `rgba(255, 150, 70, ${haloI * 0.45})`);
+  haloGrad.addColorStop(0.25,`rgba(255, 110, 50, ${haloI * 0.28})`);
+  haloGrad.addColorStop(0.6, `rgba(130, 70, 200, ${haloI * 0.12})`);
+  haloGrad.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = haloGrad;
+  ctx.fillRect(-dOuter * 1.7, -dOuter * 1.7, dOuter * 3.4, dOuter * 3.4);
+
+  /* tilted disk */
+  const tilt = 0.34;
+  ctx.save();
+  ctx.scale(1, tilt);
+
+  /* disk particles */
+  const diskSpeedMul = 0.55 + inhaleness * 0.85;
+  for (const dp of diskParticles) {
+    dp.angle += dp.speed * diskSpeedMul * (dt / 16);
+
+    const x = Math.cos(dp.angle) * dp.r;
+    const y = Math.sin(dp.angle) * dp.r;
+
+    const rNorm = (dp.r - dInner) / (dOuter - dInner);
+    /* white-hot inner, orange/red outer */
+    let rC, gC, bC;
+    if (rNorm < 0.35) {
+      const k = rNorm / 0.35;
+      rC = 255;
+      gC = Math.floor(240 - k * 90);
+      bC = Math.floor(210 - k * 150);
+    } else {
+      const k = (rNorm - 0.35) / 0.65;
+      rC = Math.floor(255 - k * 30);
+      gC = Math.floor(150 - k * 80);
+      bC = Math.floor(60 - k * 30);
+    }
+    const brightness = (1 - rNorm) * 0.8 + 0.35;
+    const alpha = Math.min(1, dp.a * brightness * (0.85 + inhaleness * 0.4));
+
+    ctx.fillStyle = `rgba(${rC}, ${Math.max(0,gC)}, ${Math.max(0,bC)}, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(x, y, dp.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore(); /* end tilt scale */
+
+  /* photon ring — bright thin ring around event horizon */
+  const ringPulse = 1 + Math.sin(now * 0.0018) * 0.025 + inhaleness * 0.04;
+  const photonGrad = ctx.createRadialGradient(0, 0, eR * 0.95, 0, 0, eR * 1.45);
+  photonGrad.addColorStop(0,    'rgba(255, 220, 180, 0)');
+  photonGrad.addColorStop(0.35, `rgba(255, 210, 150, ${0.55 + inhaleness * 0.3})`);
+  photonGrad.addColorStop(0.7,  `rgba(255, 130, 60, ${0.25 + inhaleness * 0.15})`);
+  photonGrad.addColorStop(1,    'rgba(255, 80, 30, 0)');
+  ctx.fillStyle = photonGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, eR * 1.45 * ringPulse, 0, Math.PI * 2);
+  ctx.fill();
+
+  /* event horizon — solid black with soft edge */
+  const ehGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, eR * 1.08);
+  ehGrad.addColorStop(0, '#000');
+  ehGrad.addColorStop(0.88, '#000');
+  ehGrad.addColorStop(1, 'rgba(0,0,0,0.4)');
+  ctx.fillStyle = ehGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, eR * 1.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore(); /* end translate to center */
+
+  /* ---------- floating + ejected astronauts (drawn IN FRONT) ---------- */
+  const dtN = dt / 16;
+  for (let i = astronauts.length - 1; i >= 0; i--) {
+    const a = astronauts[i];
+
+    if (a.state === 'floating') {
+      a.x += a.vx * dtN;
+      a.y += a.vy * dtN;
+      a.rot += a.rotSpeed * dtN;
+      /* wrap around the edges so the void stays populated */
+      const margin = a.size * 2.5;
+      if (a.x < -margin) a.x = W + margin;
+      if (a.x > W + margin) a.x = -margin;
+      if (a.y < -margin) a.y = H + margin;
+      if (a.y > H + margin) a.y = -margin;
+
+      ctx.save();
+      ctx.translate(a.x, a.y);
+      ctx.rotate(a.rot);
+      drawAstronautShape(a.size);
+      ctx.restore();
+    }
+
+    else if (a.state === 'ejected') {
+      a.x += a.vx * dtN;
+      a.y += a.vy * dtN;
+      a.rot += a.rotSpeed * dtN;
+      a.vx *= 0.992;
+      a.vy *= 0.992;
+
+      const age = (now - a.born) / 1000;
+      const emerge = Math.min(age / 0.5, 1);
+      const eased  = 1 - Math.pow(1 - emerge, 3);
+      const size   = a.size * eased;
+      const stretch = 1 + (1 - eased) * 1.8;
+      const radial  = Math.atan2(a.y - cy, a.x - cx);
+      const distFromCenter = Math.hypot(a.x - cx, a.y - cy);
+
+      /* graduate to floating once emerged and clear of the disk
+         (or after 5s as a safety net) */
+      if ((eased >= 0.99 && distFromCenter > diskOuter() * 1.5) || age > 5) {
+        a.state = 'floating';
+        a.vx *= 0.5;
+        a.vy *= 0.5;
+        a.rotSpeed = (Math.random() - 0.5) * 0.0035;
+      }
+
+      if (size < 0.5) continue;
+
+      ctx.save();
+      ctx.translate(a.x, a.y);
+
+      /* warm emergence glow — fades out as they leave the singularity */
+      if (eased < 1) {
+        const glowR = size * 2.6;
+        const glowGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, glowR);
+        glowGrad.addColorStop(0, `rgba(255, 184, 107, ${(1 - eased) * 0.5})`);
+        glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(-glowR, -glowR, glowR * 2, glowR * 2);
+      }
+
+      /* radial stretch outward while emerging */
+      ctx.rotate(radial);
+      ctx.scale(stretch, 1);
+      ctx.rotate(-radial);
+
+      /* tumbling */
+      ctx.rotate(a.rot);
+
+      drawAstronautShape(size);
+      ctx.restore();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function smoothstep(t) {
+  t = Math.max(0, Math.min(1, t));
+  return t * t * (3 - 2 * t);
+}
+
+/* ---------- Begin button ---------- */
+document.getElementById('begin').addEventListener('click', () => {
+  startScreen.classList.add('hidden');
+  ui.style.display = 'flex';
+  requestAnimationFrame(() => ui.classList.add('visible'));
+
+  /* prepare period before first inhale */
+  phaseText.textContent = 'Begin';
+  phaseText.classList.remove('inhale', 'exhale');
+  phaseIndicator.classList.add('visible');
+
+  setTimeout(() => {
+    const t0 = performance.now();
+    exerciseStartTime = t0;
+    phaseStartTime = t0;
+    cycleCount = 0;
+    updateProgressUI();
+    setPhase('inhale');
+    pullAstronauts(t0, pullCount());
+    running = true;
+  }, 1600);
+});
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
