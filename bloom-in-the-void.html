@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom in the Void — A Breathing Exercise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #04010f;
+    --void-2: #0a0420;
+    --void-3: #15082e;
+    --neb-magenta: #c44dff;
+    --neb-cyan: #5ee9ff;
+    --neb-pink: #ff6ec4;
+    --neb-violet: #7a3eff;
+    --bloom-core: #f5ffae;
+    --bloom-petal: #7effd1;
+    --bloom-petal-2: #4ad9a5;
+    --bloom-rim: #ff8ef0;
+    --bloom-tip: #c0a8ff;
+    --text: #f3ecff;
+    --text-dim: rgba(243, 236, 255, 0.55);
+    --text-faint: rgba(243, 236, 255, 0.3);
+    --accent: #5ee9ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    -webkit-font-smoothing: antialiased;
+    cursor: default;
+  }
+
+  body {
+    position: relative;
+  }
+
+  /* ---------- COSMIC BACKGROUND ---------- */
+
+  .cosmos {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(122, 62, 255, 0.18), transparent 60%),
+      radial-gradient(ellipse 60% 80% at 0% 0%, rgba(196, 77, 255, 0.10), transparent 60%),
+      radial-gradient(ellipse 70% 70% at 100% 30%, rgba(94, 233, 255, 0.08), transparent 60%),
+      linear-gradient(180deg, var(--void) 0%, var(--void-2) 50%, var(--void-3) 100%);
+    z-index: 0;
+  }
+
+  .nebula {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.55;
+    mix-blend-mode: screen;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .nebula-1 {
+    width: 60vmax; height: 60vmax;
+    background: radial-gradient(circle, var(--neb-magenta), transparent 60%);
+    top: -20vmax; left: -10vmax;
+    animation: drift1 42s ease-in-out infinite alternate;
+  }
+  .nebula-2 {
+    width: 70vmax; height: 70vmax;
+    background: radial-gradient(circle, var(--neb-cyan), transparent 65%);
+    bottom: -30vmax; right: -15vmax;
+    animation: drift2 56s ease-in-out infinite alternate;
+    opacity: 0.35;
+  }
+  .nebula-3 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, var(--neb-pink), transparent 60%);
+    top: 30%; left: 60%;
+    animation: drift3 68s ease-in-out infinite alternate;
+    opacity: 0.3;
+  }
+  .nebula-4 {
+    width: 40vmax; height: 40vmax;
+    background: radial-gradient(circle, var(--neb-violet), transparent 60%);
+    top: 60%; left: 10%;
+    animation: drift4 78s ease-in-out infinite alternate;
+    opacity: 0.4;
+  }
+  @keyframes drift1 {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(20vmax, 12vmax) scale(1.2); }
+  }
+  @keyframes drift2 {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-18vmax, -10vmax) scale(1.15); }
+  }
+  @keyframes drift3 {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-25vmax, 18vmax) scale(0.9); }
+  }
+  @keyframes drift4 {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(22vmax, -20vmax) scale(1.1); }
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 6px currentColor;
+    animation: twinkle var(--dur, 4s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: var(--min, 0.2); transform: scale(0.8); }
+    50%      { opacity: var(--max, 1);   transform: scale(1.4); }
+  }
+
+  .vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(4, 1, 15, 0.7) 100%);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* ---------- SCREENS ---------- */
+
+  .screen {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1.6s ease, visibility 1.6s ease;
+  }
+  .screen.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ---------- START SCREEN ---------- */
+
+  .start-content {
+    max-width: 640px;
+    padding: 40px;
+    text-align: center;
+    transform: translateY(20px);
+    opacity: 0;
+    animation: rise 2s 0.4s ease-out forwards;
+  }
+  @keyframes rise {
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .sigil {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 36px;
+    opacity: 0.85;
+    animation: sigilSpin 60s linear infinite, sigilPulse 6s ease-in-out infinite;
+  }
+  @keyframes sigilSpin { to { transform: rotate(360deg); } }
+  @keyframes sigilPulse {
+    0%, 100% { filter: drop-shadow(0 0 12px var(--neb-cyan)) drop-shadow(0 0 24px var(--neb-magenta)); }
+    50%      { filter: drop-shadow(0 0 22px var(--bloom-petal)) drop-shadow(0 0 40px var(--neb-pink)); }
+  }
+
+  .title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(2.6rem, 6vw, 4.2rem);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: linear-gradient(180deg, #ffffff 0%, #ffd2f0 50%, #c44dff 120%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 40px rgba(255, 176, 229, 0.25);
+  }
+
+  .title-mark {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.5em;
+    color: var(--text-faint);
+    margin-bottom: 28px;
+    text-transform: uppercase;
+    text-indent: 0.5em;
+  }
+
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 32px auto 48px;
+    max-width: 520px;
+  }
+  .subtitle .highlight {
+    color: #ffd2f0;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .subtitle .em-magenta {
+    color: var(--neb-pink);
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  .begin-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 44px;
+    background: transparent;
+    border: 1px solid rgba(126, 255, 209, 0.35);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 999px;
+    overflow: hidden;
+    transition: all 0.6s ease;
+  }
+  .begin-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(126, 255, 209, 0.15) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.8s ease;
+  }
+  .begin-btn:hover {
+    border-color: var(--bloom-petal);
+    color: var(--bloom-core);
+    box-shadow: 0 0 30px rgba(126, 255, 209, 0.35), inset 0 0 20px rgba(126, 255, 209, 0.08);
+    letter-spacing: 0.5em;
+  }
+  .begin-btn:hover::before {
+    transform: translateX(100%);
+  }
+  .begin-btn .dot {
+    width: 6px; height: 6px;
+    background: var(--bloom-petal);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--bloom-petal);
+    animation: dotPulse 2s ease-in-out infinite;
+  }
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.5; transform: scale(0.8); }
+    50%      { opacity: 1;   transform: scale(1.2); }
+  }
+
+  /* ---------- EXERCISE SCREEN ---------- */
+
+  .exercise-layout {
+    position: absolute;
+    inset: 0;
+  }
+
+  .instruction-anchor {
+    position: absolute;
+    top: 17%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 5;
+  }
+
+  /* ---------- TOP RESPIRATION RATE ---------- */
+
+  .rate-box-anchor {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+  }
+
+  .rate-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .rate-box .rate-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: rgba(243, 236, 255, 0.55);
+    text-indent: 0.42em;
+  }
+
+  .rate-box .rate-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .rate-box .rate-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.85rem;
+    font-weight: 300;
+    color: #ffd2f0;
+    text-shadow: 0 0 18px rgba(255, 142, 240, 0.45);
+    min-width: 3ch;
+    text-align: center;
+    transition: color 0.4s ease;
+  }
+
+  .rate-box .rate-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(243, 236, 255, 0.4);
+  }
+
+  .instruction-pre {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.6em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    text-indent: 0.6em;
+  }
+
+  .instruction {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+    letter-spacing: 0.06em;
+    line-height: 1;
+    transition: color 1.4s ease, text-shadow 1.4s ease, transform 1.4s ease;
+  }
+  .instruction.inhale {
+    color: #ffd2f0;
+    text-shadow: 0 0 30px rgba(255, 176, 229, 0.6), 0 0 60px rgba(255, 110, 196, 0.3);
+  }
+  .instruction.exhale {
+    color: #c0a8ff;
+    text-shadow: 0 0 30px rgba(122, 62, 255, 0.4), 0 0 60px rgba(196, 77, 255, 0.25);
+  }
+
+  /* ---------- THE FLOWER ----------
+     Centered using the classic "absolute + margin: auto" technique.
+     This works regardless of parent flex / grid behavior. */
+
+  .flower-wrap {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    margin: auto;
+    width: min(72vmin, 620px);
+    height: min(72vmin, 620px);
+  }
+
+  .flower-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255, 176, 229, 0.25) 0%, rgba(196, 77, 255, 0.12) 30%, transparent 60%);
+    filter: blur(30px);
+    transition: opacity 5s ease, transform 5s ease;
+    transform-origin: 50% 50%;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .flower-wrap.inhale .flower-glow { opacity: 1;    transform: scale(1.15); }
+  .flower-wrap.exhale .flower-glow { opacity: 0.55; transform: scale(0.9); }
+
+  .particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .flower {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Each layer group: transform-box: fill-box anchors the transform-origin
+     to the group's own bounding box (which is symmetric around SVG 0,0).
+     This gives predictable scaling/rotation around the visual center
+     in every browser. */
+  .petal-group {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    transition: transform 5000ms cubic-bezier(0.45, 0.05, 0.5, 0.95);
+  }
+
+  /* CLOSED (default + exhale endpoint): all three layers at the SAME
+     scale and rotation — they overlap perfectly into a single tight bud. */
+  .flower-wrap .layer-outer,
+  .flower-wrap.exhale .layer-outer { transform: scale(0.32) rotate(0deg); }
+  .flower-wrap .layer-mid,
+  .flower-wrap.exhale .layer-mid   { transform: scale(0.32) rotate(0deg); }
+  .flower-wrap .layer-inner,
+  .flower-wrap.exhale .layer-inner { transform: scale(0.32) rotate(0deg); }
+
+  /* OPEN (inhale endpoint): each layer goes to its own scale and rotation.
+     The three layers visibly separate to reveal the full bloom. */
+  .flower-wrap.inhale .layer-outer { transform: scale(1)    rotate(0deg); }
+  .flower-wrap.inhale .layer-mid   { transform: scale(0.78) rotate(30deg); }
+  .flower-wrap.inhale .layer-inner { transform: scale(0.58) rotate(15deg); }
+
+  /* Stellar core */
+  .core-group {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    transition: transform 5000ms ease, filter 5000ms ease;
+  }
+  .flower-wrap .core-group,
+  .flower-wrap.exhale .core-group {
+    transform: scale(0.85);
+    filter: drop-shadow(0 0 10px #fff0fa) drop-shadow(0 0 20px #ff8ef0);
+  }
+  .flower-wrap.inhale .core-group {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 24px #fff0fa) drop-shadow(0 0 40px #ff8ef0);
+  }
+
+  /* Floating particles around flower */
+  .particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: var(--bloom-petal);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--bloom-petal);
+    opacity: 0;
+    animation: floatParticle var(--p-dur, 12s) ease-in-out infinite;
+    animation-delay: var(--p-delay, 0s);
+    top: 50%; left: 50%;
+  }
+  @keyframes floatParticle {
+    0%   { opacity: 0; transform: translate(0, 0) scale(0); }
+    20%  { opacity: 0.8; }
+    50%  { transform: translate(var(--p-x, 100px), var(--p-y, -80px)) scale(1); }
+    80%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translate(calc(var(--p-x, 100px) * 1.5), calc(var(--p-y, -80px) * 1.5)) scale(0.2); }
+  }
+
+  /* ---------- HUD BOTTOM ---------- */
+
+  .hud-bottom {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 0 6vw 4.5vh;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .progress-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .progress-track {
+    position: relative;
+    height: 8px;
+    background: rgba(243, 236, 255, 0.13);
+    border-radius: 4px;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.35),
+      0 0 30px rgba(196, 77, 255, 0.06);
+  }
+  .progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    background: linear-gradient(90deg, #5ee9ff, #ff8ef0 55%, #c44dff);
+    box-shadow:
+      0 0 18px rgba(255, 142, 240, 0.65),
+      0 0 36px rgba(196, 77, 255, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    transition: width 10s linear;
+  }
+  /* Glowing comet-head at the leading edge */
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    box-shadow:
+      0 0 12px #ffffff,
+      0 0 24px #ff8ef0,
+      0 0 44px rgba(196, 77, 255, 0.6);
+    border-radius: 50%;
+  }
+
+  /* ---------- END SCREEN ---------- */
+
+  .end-content {
+    max-width: 580px;
+    padding: 40px;
+    text-align: center;
+  }
+  .end-mark {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 40px;
+    opacity: 0.7;
+    animation: endPulse 8s ease-in-out infinite;
+  }
+  @keyframes endPulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50%      { transform: scale(1.15); opacity: 0.9; }
+  }
+
+  .end-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    line-height: 1.7;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+  }
+  .end-text .em {
+    color: var(--bloom-petal);
+    font-style: normal;
+    font-weight: 400;
+  }
+  .end-coda {
+    margin-top: 56px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  /* ---------- HELPERS ---------- */
+  .fade-in {
+    animation: fadeIn 2s ease forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== COSMIC BACKGROUND LAYERS ===== -->
+<div class="cosmos"></div>
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div class="nebula nebula-3"></div>
+<div class="nebula nebula-4"></div>
+<div class="stars" id="stars"></div>
+<div class="vignette"></div>
+
+<!-- ===== START SCREEN ===== -->
+<section id="startScreen" class="screen active">
+  <div class="start-content">
+    <svg class="sigil" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="sigilGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f5ffae" stop-opacity="1"/>
+          <stop offset="40%" stop-color="#7effd1" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#c44dff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="6" fill="url(#sigilGrad)"/>
+      <g fill="none" stroke="#7effd1" stroke-width="0.6" opacity="0.75">
+        <circle cx="50" cy="50" r="20"/>
+        <circle cx="50" cy="50" r="32"/>
+        <circle cx="50" cy="50" r="44"/>
+      </g>
+      <g fill="#7effd1">
+        <circle cx="50" cy="6"  r="1.2"/>
+        <circle cx="50" cy="94" r="1.2"/>
+        <circle cx="6"  cy="50" r="1.2"/>
+        <circle cx="94" cy="50" r="1.2"/>
+      </g>
+      <g stroke="#ff8ef0" stroke-width="0.4" opacity="0.6">
+        <line x1="50" y1="18" x2="50" y2="30"/>
+        <line x1="50" y1="70" x2="50" y2="82"/>
+        <line x1="18" y1="50" x2="30" y2="50"/>
+        <line x1="70" y1="50" x2="82" y2="50"/>
+      </g>
+    </svg>
+
+    <span class="title-mark">A breathing voyage</span>
+    <h1 class="title">Bloom in the Void</h1>
+
+    <p class="subtitle">
+      Somewhere past the last known star, a flower waits. It needs no air, no light, no name — yet it blooms when you breathe.
+      <br><br>
+      <span class="highlight">Inhale</span>, and its petals unfurl into the dark.
+      <span class="em-magenta">Exhale</span>, and they fold like a held secret.
+    </p>
+
+    <button id="beginBtn" class="begin-btn">
+      <span class="dot"></span>
+      <span>Begin the Drift</span>
+    </button>
+  </div>
+</section>
+
+<!-- ===== EXERCISE SCREEN ===== -->
+<section id="exerciseScreen" class="screen">
+  <div class="exercise-layout">
+
+    <!-- Respiration rate readout, top of screen -->
+    <div class="rate-box-anchor">
+      <div class="rate-box">
+        <span class="rate-label">Respiration Rate</span>
+        <div class="rate-row">
+          <span class="rate-value" id="rateValue">6.0</span>
+          <span class="rate-unit">br/min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instruction text -->
+    <div class="instruction-anchor">
+      <span class="instruction-pre">Follow the bloom</span>
+      <div class="instruction inhale" id="instruction">Inhale</div>
+    </div>
+
+    <!-- Flower: absolutely centered in the exercise layout -->
+    <div class="flower-wrap exhale" id="flowerWrap">
+      <div class="flower-glow"></div>
+      <div class="particles" id="particles"></div>
+
+      <svg class="flower" viewBox="-200 -200 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- Three petal gradients (one per layer) for visual depth when open -->
+          <radialGradient id="petalGradA" cx="50%" cy="20%" r="80%">
+            <stop offset="0%"  stop-color="#ffb0e5" stop-opacity="0.95"/>
+            <stop offset="45%" stop-color="#e055b8" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#7a1f8f" stop-opacity="0.55"/>
+          </radialGradient>
+          <radialGradient id="petalGradB" cx="50%" cy="25%" r="80%">
+            <stop offset="0%"  stop-color="#ffd2f0" stop-opacity="0.95"/>
+            <stop offset="50%" stop-color="#ff6ec4" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#a02d8c" stop-opacity="0.5"/>
+          </radialGradient>
+          <radialGradient id="petalGradC" cx="50%" cy="30%" r="80%">
+            <stop offset="0%"  stop-color="#fff0fa" stop-opacity="0.95"/>
+            <stop offset="55%" stop-color="#ffa0d8" stop-opacity="0.85"/>
+            <stop offset="100%" stop-color="#c44dff" stop-opacity="0.55"/>
+          </radialGradient>
+
+          <!-- Stellar core gradient -->
+          <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"  stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="35%" stop-color="#fff0fa" stop-opacity="1"/>
+            <stop offset="70%" stop-color="#ffb0e5" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#ff6ec4" stop-opacity="0"/>
+          </radialGradient>
+
+          <filter id="petalGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <filter id="coreGlow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <!-- One shared petal shape, defined symmetrically around the SVG
+               origin (0,0) which sits at the center of the viewBox.
+               All three layers use this identical shape, so when stacked
+               at the same scale and rotation they overlap perfectly. -->
+          <ellipse id="petalShape" cx="0" cy="-72" rx="54" ry="96"/>
+        </defs>
+
+        <!-- Layer 1 -->
+        <g class="petal-group layer-outer" filter="url(#petalGlow)">
+          <use href="#petalShape" fill="url(#petalGradA)" opacity="0.55" transform="rotate(0)"/>
+          <use href="#petalShape" fill="url(#petalGradA)" opacity="0.55" transform="rotate(60)"/>
+          <use href="#petalShape" fill="url(#petalGradA)" opacity="0.55" transform="rotate(120)"/>
+          <use href="#petalShape" fill="url(#petalGradA)" opacity="0.55" transform="rotate(180)"/>
+          <use href="#petalShape" fill="url(#petalGradA)" opacity="0.55" transform="rotate(240)"/>
+          <use href="#petalShape" fill="url(#petalGradA)" opacity="0.55" transform="rotate(300)"/>
+        </g>
+
+        <!-- Layer 2 -->
+        <g class="petal-group layer-mid" filter="url(#petalGlow)">
+          <use href="#petalShape" fill="url(#petalGradB)" opacity="0.6" transform="rotate(0)"/>
+          <use href="#petalShape" fill="url(#petalGradB)" opacity="0.6" transform="rotate(60)"/>
+          <use href="#petalShape" fill="url(#petalGradB)" opacity="0.6" transform="rotate(120)"/>
+          <use href="#petalShape" fill="url(#petalGradB)" opacity="0.6" transform="rotate(180)"/>
+          <use href="#petalShape" fill="url(#petalGradB)" opacity="0.6" transform="rotate(240)"/>
+          <use href="#petalShape" fill="url(#petalGradB)" opacity="0.6" transform="rotate(300)"/>
+        </g>
+
+        <!-- Layer 3 -->
+        <g class="petal-group layer-inner" filter="url(#petalGlow)">
+          <use href="#petalShape" fill="url(#petalGradC)" opacity="0.65" transform="rotate(0)"/>
+          <use href="#petalShape" fill="url(#petalGradC)" opacity="0.65" transform="rotate(60)"/>
+          <use href="#petalShape" fill="url(#petalGradC)" opacity="0.65" transform="rotate(120)"/>
+          <use href="#petalShape" fill="url(#petalGradC)" opacity="0.65" transform="rotate(180)"/>
+          <use href="#petalShape" fill="url(#petalGradC)" opacity="0.65" transform="rotate(240)"/>
+          <use href="#petalShape" fill="url(#petalGradC)" opacity="0.65" transform="rotate(300)"/>
+        </g>
+
+        <!-- Stellar core -->
+        <g class="core-group" filter="url(#coreGlow)">
+          <circle r="22" fill="url(#coreGrad)" opacity="0.55"/>
+          <circle r="12" fill="url(#coreGrad)" opacity="0.9"/>
+          <circle r="5"  fill="#ffffff"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="progress-block">
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== END SCREEN ===== -->
+<section id="endScreen" class="screen">
+  <div class="end-content">
+    <svg class="end-mark" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="25" cy="25" r="3" fill="#7effd1"/>
+      <circle cx="25" cy="25" r="14" fill="none" stroke="#7effd1" stroke-width="0.4" opacity="0.6"/>
+      <circle cx="25" cy="25" r="22" fill="none" stroke="#ff8ef0" stroke-width="0.3" opacity="0.4"/>
+    </svg>
+
+    <p class="end-text">
+      The flower has folded.
+      <br>
+      The <span class="em">void</span> is quiet again.
+      <br><br>
+      Carry the stillness with you.
+    </p>
+
+    <p class="end-coda">&mdash; End of drift &mdash;</p>
+  </div>
+</section>
+
+<script>
+/* =====================================================================
+   BLOOM IN THE VOID — Breathing exercise controller
+   ===================================================================== */
+
+// ---------- Config ----------
+const INHALE_MS    = 5000;   // duration of inhale phase
+const EXHALE_MS    = 5000;   // duration of exhale phase
+const TOTAL_CYCLES = 33;     // total breathing cycles
+const TARGET_RATE  = 6.0;    // breaths per minute that the exercise paces to
+
+// ---------- Element references ----------
+const startScreen    = document.getElementById('startScreen');
+const exerciseScreen = document.getElementById('exerciseScreen');
+const endScreen      = document.getElementById('endScreen');
+const beginBtn       = document.getElementById('beginBtn');
+
+const flowerWrap   = document.getElementById('flowerWrap');
+const instruction  = document.getElementById('instruction');
+const progressFill = document.getElementById('progressFill');
+const rateValue    = document.getElementById('rateValue');
+
+// ---------- State ----------
+let currentCycle  = 0;
+let exerciseActive = false;
+let cycleTimers   = [];
+let rateInterval  = null;
+
+// ---------- Background: starfield ----------
+function buildStars() {
+  const container = document.getElementById('stars');
+  const COUNT = 220;
+  const colors = ['#ffffff', '#cde9ff', '#ffe2f2', '#e0d4ff', '#d4ffe9'];
+  let html = '';
+  for (let i = 0; i < COUNT; i++) {
+    const x = Math.random() * 100;
+    const y = Math.random() * 100;
+    const size = Math.random() < 0.85
+      ? (Math.random() * 1.2 + 0.4)
+      : (Math.random() * 2 + 1.5);
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const dur = (Math.random() * 5 + 2.5).toFixed(2);
+    const delay = (Math.random() * 6).toFixed(2);
+    const min = (Math.random() * 0.2 + 0.05).toFixed(2);
+    const max = (Math.random() * 0.4 + 0.6).toFixed(2);
+    html += `<div class="star" style="
+      left:${x}%;top:${y}%;
+      width:${size}px;height:${size}px;
+      color:${color};
+      --dur:${dur}s;--delay:${delay}s;
+      --min:${min};--max:${max};
+    "></div>`;
+  }
+  container.innerHTML = html;
+}
+buildStars();
+
+// ---------- Floating bloom particles (around flower) ----------
+function buildParticles() {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  const COUNT = 18;
+  let html = '';
+  const colors = ['#ff8ef0', '#ffd2f0', '#c44dff', '#5ee9ff'];
+  for (let i = 0; i < COUNT; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * 160;
+    const x = Math.cos(angle) * dist;
+    const y = Math.sin(angle) * dist;
+    const dur = (Math.random() * 10 + 10).toFixed(2);
+    const delay = (Math.random() * 14).toFixed(2);
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const size = (Math.random() * 2 + 1.5).toFixed(1);
+    html += `<div class="particle" style="
+      --p-x:${x.toFixed(0)}px;--p-y:${y.toFixed(0)}px;
+      --p-dur:${dur}s;--p-delay:${delay}s;
+      width:${size}px;height:${size}px;
+      background:${color};box-shadow:0 0 10px ${color};
+    "></div>`;
+  }
+  container.innerHTML = html;
+}
+buildParticles();
+
+// ---------- Respiration rate readout ----------
+function updateRate() {
+  /* ==================================================================
+     >>> GARMIN INTEGRATION POINT <<<
+     ------------------------------------------------------------------
+     Replace the simulated `rate` below with the live respiration
+     rate (breaths per minute) coming from the Garmin watch.
+     The value displayed in #rateValue should be a number, e.g. 6.0.
+     A reasonable update cadence is every 2–4 seconds.
+     Example shape:
+         const rate = GarminWatch.getCurrentRespirationRate();
+     ================================================================== */
+  const rate = (TARGET_RATE + (Math.random() - 0.5) * 0.6).toFixed(1);
+  rateValue.textContent = rate;
+}
+
+// ---------- Screen transitions ----------
+function showScreen(screen) {
+  [startScreen, exerciseScreen, endScreen].forEach(s => s.classList.remove('active'));
+  screen.classList.add('active');
+}
+
+// ---------- Phase setters ----------
+function setInhale() {
+  flowerWrap.classList.remove('exhale');
+  flowerWrap.classList.add('inhale');
+  instruction.classList.remove('exhale');
+  instruction.classList.add('inhale');
+  instruction.textContent = 'Inhale';
+}
+function setExhale() {
+  flowerWrap.classList.remove('inhale');
+  flowerWrap.classList.add('exhale');
+  instruction.classList.remove('inhale');
+  instruction.classList.add('exhale');
+  instruction.textContent = 'Exhale';
+}
+
+// ---------- Progress ----------
+function updateProgress() {
+  const pct = (currentCycle / TOTAL_CYCLES) * 100;
+  progressFill.style.width = pct + '%';
+}
+
+// ---------- Cycle engine ----------
+function runCycle() {
+  if (!exerciseActive) return;
+  if (currentCycle >= TOTAL_CYCLES) {
+    endExercise();
+    return;
+  }
+  currentCycle++;
+  updateProgress();
+
+  // Inhale phase
+  setInhale();
+
+  const t1 = setTimeout(() => {
+    if (!exerciseActive) return;
+    // Exhale phase
+    setExhale();
+
+    const t2 = setTimeout(() => {
+      if (!exerciseActive) return;
+      runCycle();
+    }, EXHALE_MS);
+    cycleTimers.push(t2);
+
+  }, INHALE_MS);
+  cycleTimers.push(t1);
+}
+
+function startExercise() {
+  showScreen(exerciseScreen);
+  // Reset state
+  currentCycle = 0;
+  updateProgress();
+  // Begin rate telemetry updates
+  updateRate();
+  rateInterval = setInterval(updateRate, 2500);
+  // Small delay so user has a beat to orient
+  setTimeout(() => {
+    exerciseActive = true;
+    runCycle();
+  }, 1400);
+}
+
+function endExercise() {
+  exerciseActive = false;
+  cycleTimers.forEach(clearTimeout);
+  cycleTimers = [];
+  if (rateInterval) clearInterval(rateInterval);
+  // Gentle pause before transitioning out
+  setTimeout(() => {
+    showScreen(endScreen);
+  }, 1200);
+}
+
+// ---------- Wire up ----------
+beginBtn.addEventListener('click', () => {
+  startExercise();
+});
+</script>
+</body>
+</html>
