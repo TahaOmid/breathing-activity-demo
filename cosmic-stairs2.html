@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmic Breath — Stairway Meditation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Space palette */
+  --bg-deep:       #050818;
+  --bg-mid:        #0d0a2e;
+  --bg-warm:       #1f0a36;
+
+  --nebula-violet: #4a1e7a;
+  --nebula-magenta:#a83a8a;
+  --nebula-cyan:   #1a5d8a;
+  --nebula-rose:   #d24e7f;
+
+  /* Ball / star */
+  --core:    #fff5d6;
+  --warm:    #ffba6a;
+  --hot:     #ff7d3b;
+  --deep:    #c8311c;
+  --shadow:  #4a0a05;
+
+  /* Crystal staircase */
+  --crystal-bright: #cce1ff;
+  --crystal:        #7eb1ff;
+  --crystal-dim:    rgba(126, 177, 255, 0.18);
+
+  /* Type */
+  --ink:       #f5ecd8;
+  --ink-soft:  rgba(245, 236, 216, 0.72);
+  --ink-mute:  rgba(245, 236, 216, 0.42);
+  --ink-faint: rgba(245, 236, 216, 0.18);
+
+  --serif: 'Cormorant Garamond', 'Garamond', serif;
+  --sans:  'Outfit', 'Helvetica Neue', sans-serif;
+
+  /* Timing */
+  --cycle: 10s;       /* 6 breaths per minute → 10s per cycle */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-family: var(--sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ───────────────────────────── COSMIC BACKGROUND ─────────────────────── */
+.cosmos {
+  position: fixed;
+  inset: -10%;
+  z-index: -5;
+  background:
+    radial-gradient(ellipse 50% 40% at 18% 22%, var(--nebula-violet) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 82% 78%, var(--nebula-magenta) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 60% at 50% 50%, var(--nebula-cyan) 0%, transparent 55%),
+    radial-gradient(ellipse 30% 30% at 90% 15%, var(--nebula-rose) 0%, transparent 60%),
+    linear-gradient(170deg, var(--bg-deep) 0%, var(--bg-mid) 45%, var(--bg-warm) 100%);
+  filter: blur(0.3px);
+  animation: nebulaDrift 90s ease-in-out infinite alternate;
+}
+
+.cosmos::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(5, 8, 24, 0.6) 80%);
+  pointer-events: none;
+}
+
+@keyframes nebulaDrift {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1);   filter: hue-rotate(0deg) blur(0.3px); }
+  50%  { transform: translate(2%, -1.5%) rotate(2deg) scale(1.08); filter: hue-rotate(15deg) blur(0.3px); }
+  100% { transform: translate(-1.5%, 2%) rotate(-2deg) scale(1.04); filter: hue-rotate(-10deg) blur(0.3px); }
+}
+
+/* Universe pulse — barely perceptible breath synced to ball */
+.cosmos-pulse {
+  position: fixed;
+  inset: 0;
+  z-index: -4;
+  background: radial-gradient(circle at 50% 55%, rgba(255, 158, 90, 0.06) 0%, transparent 50%);
+  opacity: 0;
+  pointer-events: none;
+}
+.running .cosmos-pulse {
+  animation: cosmosPulse var(--cycle) ease-in-out infinite;
+}
+@keyframes cosmosPulse {
+  0%, 100% { opacity: 0; transform: scale(0.9); }
+  50%      { opacity: 1; transform: scale(1.05); }
+}
+
+/* Star layers */
+.stars-layer {
+  position: fixed;
+  top: 0; left: 0;
+  width: 1px; height: 1px;
+  z-index: -3;
+  pointer-events: none;
+  border-radius: 50%;
+  /* GPU compositing: the box-shadow renders hundreds of stars on a tiny
+     1×1 element; promoting to its own layer rasterises that field ONCE
+     and lets the twinkle animate opacity on the cached texture (no
+     per-frame shadow re-paint). */
+  will-change: opacity, transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+.stars-layer-1 { animation: twinkle1 5.2s ease-in-out infinite alternate; }
+.stars-layer-2 { animation: twinkle2 7.8s ease-in-out infinite alternate; }
+.stars-layer-3 { animation: twinkle3 11.5s ease-in-out infinite alternate; }
+@keyframes twinkle1 { from { opacity: 0.55; } to { opacity: 1; } }
+@keyframes twinkle2 { from { opacity: 0.8;  } to { opacity: 0.35; } }
+@keyframes twinkle3 { from { opacity: 1;    } to { opacity: 0.5; } }
+
+/* Shooting star */
+.shooting-star {
+  position: fixed;
+  top: 15%;
+  left: -10%;
+  width: 140px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 240, 200, 0.9), rgba(255, 200, 130, 0.4), transparent);
+  transform: rotate(15deg);
+  opacity: 0;
+  filter: blur(0.5px);
+  z-index: -2;
+  animation: shoot 14s ease-in infinite;
+  animation-delay: 5s;
+}
+@keyframes shoot {
+  0%   { transform: translate(0, 0) rotate(15deg); opacity: 0; }
+  3%   { opacity: 1; }
+  10%  { transform: translate(130vw, 35vh) rotate(15deg); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* ─────────────────────────────── SCREENS ─────────────────────────────── */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 48px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.9s ease, visibility 0.9s;
+}
+.screen.active { opacity: 1; visibility: visible; }
+
+/* ─────────────────────────── START / COMPLETE ────────────────────────── */
+.start-content, .complete-content {
+  max-width: 540px;
+  text-align: center;
+  position: relative;
+}
+
+.overline {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 22px;
+  position: relative;
+  display: inline-block;
+}
+.overline::before, .overline::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+.overline::before { right: calc(100% + 14px); }
+.overline::after  { left:  calc(100% + 14px); }
+
+.title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(56px, 9vw, 96px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin-bottom: 28px;
+  background: linear-gradient(180deg, #fff8e8 0%, #f5ecd8 50%, #d4b896 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.title em {
+  font-style: italic;
+  font-weight: 400;
+  background: linear-gradient(180deg, #ffd89a 0%, #ff9d5c 60%, #c43e1c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(17px, 1.8vw, 22px);
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin-bottom: 52px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.begin-btn {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid rgba(245, 236, 216, 0.35);
+  padding: 18px 44px;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+  isolation: isolate;
+}
+.begin-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 158, 90, 0.18), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: -1;
+}
+.begin-btn:hover {
+  border-color: rgba(255, 200, 140, 0.7);
+  letter-spacing: 0.42em;
+  padding-right: 56px;
+}
+.begin-btn:hover::before { opacity: 1; }
+.begin-btn svg { transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.begin-btn:hover svg { transform: translateX(4px); }
+
+/* Decorative ring around start title */
+.orbit-ring {
+  position: absolute;
+  inset: -120px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: orbitRotate 60s linear infinite;
+}
+.orbit-ring::before {
+  content: '';
+  position: absolute;
+  top: -3px; left: 50%;
+  width: 6px; height: 6px;
+  background: var(--warm);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--warm), 0 0 24px rgba(255, 158, 90, 0.5);
+  transform: translateX(-50%);
+}
+@keyframes orbitRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ───────────────────────────── EXERCISE SCREEN ───────────────────────── */
+#exercise-screen {
+  justify-content: space-between;
+  padding: clamp(28px, 5vh, 56px) clamp(20px, 4vw, 64px);
+}
+
+.exercise-header {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.progress-wrap {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Respiration rate readout — sits above the progress bar */
+.respiration-rate {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  text-align: center;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.respiration-rate .rr-sep {
+  color: var(--ink-faint);
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+.respiration-rate .rr-num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  background: linear-gradient(180deg, #fff8e8 0%, #ffd89a 60%, #ff9d5c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.respiration-rate .rr-label {
+  color: var(--ink-mute);
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(245, 236, 216, 0.08);
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 0.5px rgba(245, 236, 216, 0.06);
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,
+    rgba(255, 158, 90, 0.85) 0%,
+    var(--warm) 45%,
+    #fff5d6 100%);
+  border-radius: 999px;
+  box-shadow:
+    0 0 8px rgba(255, 158, 90, 0.7),
+    0 0 20px rgba(255, 158, 90, 0.35);
+  transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+
+.cycle-label {
+  display: none;
+}
+
+/* ─────────────────────────────── STAGE ───────────────────────────────── */
+.stage-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 24px 0;
+}
+.stage-frame {
+  width: min(92vw, 720px);
+  aspect-ratio: 3 / 2;
+  position: relative;
+}
+.stage {
+  position: absolute;
+  inset: 0;
+  width: 600px;
+  height: 400px;
+  transform-origin: top left;
+}
+
+.stairs-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Subtle scatter of dust under the staircase */
+.stage::before {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: -10%; right: -10%;
+  height: 80px;
+  background: radial-gradient(ellipse at center, rgba(126, 177, 255, 0.18), transparent 70%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* ─────────────────────────────── BALL ────────────────────────────────── */
+.ball {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  /* Anchored so ball CENTER = (40, 322): bottom of ball sits exactly on
+     step 1's tread (y=350) at the CONSTANT scale of 0.8 (radius 28).
+     The ball stays the same size for the whole cycle — climb and roll —
+     so the visible motion is bouncing & rolling rather than breathing-in-
+     and-out scaling. All keyframe translate values are deltas from here. */
+  left: 40px;
+  top: 322px;
+  margin-left: -35px;
+  margin-top: -35px;
+  border-radius: 50%;
+  pointer-events: none;
+
+  /* GPU compositing — promotes the ball to its own layer so the heavy
+     box-shadow (glow + corona) is rasterised once and only the transform
+     is updated each frame. Eliminates per-frame shadow re-rasterisation,
+     which is the main source of choppiness on lower-end hardware. */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+
+  /* Ball gradient: warm core with deep edge */
+  background:
+    radial-gradient(circle at 32% 30%, #fff8e0 0%, var(--core) 12%, var(--warm) 35%, var(--hot) 60%, var(--deep) 82%, var(--shadow) 100%);
+  box-shadow:
+    inset -6px -10px 22px rgba(80, 12, 6, 0.55),
+    inset 8px 8px 22px rgba(255, 248, 220, 0.35),
+    0 0 24px rgba(255, 168, 92, 0.85),
+    0 0 48px rgba(255, 122, 60, 0.55),
+    0 0 90px rgba(255, 90, 48, 0.38),
+    0 0 160px rgba(255, 70, 40, 0.22);
+}
+
+/* Surface storms / texture overlay */
+.ball::before {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 60% 35% at 35% 60%, rgba(255, 220, 140, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 25% at 70% 35%, rgba(200, 50, 30, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 30% 18% at 30% 25%, rgba(255, 240, 180, 0.3) 0%, transparent 60%);
+  mix-blend-mode: overlay;
+}
+
+/* Pulsing corona */
+.ball::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 150, 80, 0.28) 0%, rgba(255, 100, 60, 0.12) 35%, transparent 65%);
+  animation: coronaPulse 2.4s ease-in-out infinite alternate;
+  z-index: -1;
+}
+@keyframes coronaPulse {
+  from { transform: scale(1);   opacity: 0.65; }
+  to   { transform: scale(1.18); opacity: 1; }
+}
+
+/* Ball motion — only runs when .running */
+.running .ball {
+  animation: ballMotion var(--cycle) cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* ─── Stairs ↔ Slope morph ─ ALL-AT-ONCE at the peak ───
+   The staircase stays put through the entire climb. The moment the ball
+   has landed at the top (~50%), every inner corner slides up to meet the
+   next step's outer corner — the zigzag flattens into one continuous
+   diagonal ramp. The ball then rolls down that ramp. At the end of the
+   cycle (~95%–100%) the ramp re-folds back into stairs for the next breath. */
+
+.running .surface-edge { animation: morphEdge var(--cycle) ease-in-out infinite; }
+.running .surface-fill { animation: morphFill var(--cycle) ease-in-out infinite; }
+.running .stairs-only  { animation: stairsOnlyFade var(--cycle) ease-in-out infinite; }
+
+@keyframes morphEdge {
+  0%, 50% {
+    d: path("M 0,350 L 80,350 L 80,300 L 160,300 L 160,250 L 240,250 L 240,200 L 320,200 L 320,150 L 400,150 L 400,100 L 600,100");
+  }
+  55%, 95% {
+    d: path("M 0,350 L 80,300 L 80,300 L 160,250 L 160,250 L 240,200 L 240,200 L 320,150 L 320,150 L 400,100 L 400,100 L 600,100");
+  }
+  100% {
+    d: path("M 0,350 L 80,350 L 80,300 L 160,300 L 160,250 L 240,250 L 240,200 L 320,200 L 320,150 L 400,150 L 400,100 L 600,100");
+  }
+}
+
+@keyframes morphFill {
+  0%, 50% {
+    d: path("M -40,400 L -40,355 L 80,355 L 80,305 L 160,305 L 160,255 L 240,255 L 240,205 L 320,205 L 320,155 L 400,155 L 400,105 L 640,105 L 640,400 Z");
+  }
+  55%, 95% {
+    d: path("M -40,400 L -40,355 L 80,305 L 80,305 L 160,255 L 160,255 L 240,205 L 240,205 L 320,155 L 320,155 L 400,105 L 400,105 L 640,105 L 640,400 Z");
+  }
+  100% {
+    d: path("M -40,400 L -40,355 L 80,355 L 80,305 L 160,305 L 160,255 L 240,255 L 240,205 L 320,205 L 320,155 L 400,155 L 400,105 L 640,105 L 640,400 Z");
+  }
+}
+
+/* The dashed risers + tread dots all fade together once the slope appears,
+   then fade back in as the stairs re-form. */
+@keyframes stairsOnlyFade {
+  0%, 48%  { opacity: 1; }
+  55%, 95% { opacity: 0; }
+  100%     { opacity: 1; }
+}
+
+/*
+   Coordinate system: ball center starts at (40, 330) in stage space.
+   Each platform is 50px higher and 80px to the right.
+   - Platform 1 top y=350; ball walks 0→80px right
+   - Platform 2 top y=300; ball arrives at (120, 280) → translate (80, -50)
+   - …continuing up to a 6th top platform.
+*/
+@keyframes ballMotion {
+  /* ─── INHALE (0% → 51%) ─ bouncing UP each step ───
+     CONSTANT size (scale 0.8 → radius 28) for the entire climb. The ball
+     no longer grows as it rises — the breath cue is in the bouncing
+     rhythm itself.
+
+     IMPACT TIMING — each bounce uses FOUR keyframes:
+       apex          (round, mid-air)
+       just touched  (round, bottom on surface)   ← contact moment
+       peak squash   (deformed, bottom still on surface)
+       recover       (round, settled on surface)
+
+     The "just touched" keyframe is the key fix: it holds the ball ROUND
+     all the way down to the surface, so the squash only happens AFTER
+     contact (over the 1% segment from just-touched to peak-squash). The
+     ball is no longer "pre-deforming" on the way down — the deformation
+     reads as a consequence of impact, not anticipation.
+
+       round shape:    70 × 70 px at scale(0.8)        → 56 × 56  (half-height 28)
+       squash shape:   70 × 70 px at scale(0.96, 0.65) → 67 × 45.5 (half-height 22.75)
+
+     The translate-y on each peak-squash keyframe is lifted 5 px so the
+     ball's BOTTOM stays on the tread (22.75 vs 28 half-height = 5.25 px).
+
+     translate3d() (rather than translate()) keeps every frame on the GPU
+     compositing layer — no layout, no paint, just transform. */
+
+  /* Resting on step 1 — center (40, 322), bottom on y=350 */
+  0%   { transform: translate3d(0px,    0px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Bounce 1 apex — mid-air, center (80, 192) */
+  5%   { transform: translate3d(40px, -130px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-in; }
+  /* Just touched step 2 — ROUND, bottom on y=300 (no squash yet!) */
+  9%   { transform: translate3d(80px,  -50px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Peak SQUASH on step 2 — bottom still on y=300, top crushed down */
+  10%  { transform: translate3d(80px,  -45px, 0) scale(0.96, 0.65) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Recovered on step 2 — round again, ready to launch */
+  11%  { transform: translate3d(80px,  -50px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Bounce 2 apex */
+  15%  { transform: translate3d(120px,-180px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-in; }
+  /* Just touched step 3 — ROUND */
+  19%  { transform: translate3d(160px,-100px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Peak SQUASH on step 3 */
+  20%  { transform: translate3d(160px, -95px, 0) scale(0.96, 0.65) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Recovered on step 3 */
+  21%  { transform: translate3d(160px,-100px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Bounce 3 apex */
+  25%  { transform: translate3d(200px,-230px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-in; }
+  /* Just touched step 4 — ROUND */
+  29%  { transform: translate3d(240px,-150px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Peak SQUASH on step 4 */
+  30%  { transform: translate3d(240px,-145px, 0) scale(0.96, 0.65) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Recovered on step 4 */
+  31%  { transform: translate3d(240px,-150px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Bounce 4 apex */
+  35%  { transform: translate3d(280px,-280px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-in; }
+  /* Just touched step 5 — ROUND */
+  39%  { transform: translate3d(320px,-200px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Peak SQUASH on step 5 */
+  40%  { transform: translate3d(320px,-195px, 0) scale(0.96, 0.65) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Recovered on step 5 */
+  41%  { transform: translate3d(320px,-200px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Bounce 5 apex — highest arc, briefly past the top of stage */
+  45%  { transform: translate3d(370px,-310px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-in; }
+  /* Just touched top platform — ROUND */
+  49%  { transform: translate3d(420px,-250px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Peak SQUASH on top platform — the breath-peak landing */
+  50%  { transform: translate3d(420px,-245px, 0) scale(0.96, 0.65) rotate(0deg);
+         animation-timing-function: ease-out; }
+  /* Recovered on top platform — round and stationary while the staircase
+     morphs into a single ramp underneath (see morphEdge / morphFill, 50→55%) */
+  51%  { transform: translate3d(420px,-250px, 0) scale(0.8) rotate(0deg);
+         animation-timing-function: linear; }
+
+  /* ─── EXHALE (51% → 100%) ─ ONE continuous roll, constant speed ───
+     The staircase has flattened into a single straight ramp during 50%–55%.
+     The ball traverses three contiguous segments, all with LINEAR timing
+     so there are no ease-in-out plateaus at the keyframe boundaries:
+
+       51% → 56%:  rolls along the horizontal top  (y=100, x: 460→400)
+       56% → 95%:  rolls down the diagonal ramp    (y = 350 − 0.625·x)
+       95% → 100%: settles onto step 1 vertically as stairs re-form
+
+     Only three keyframes during the descent — one for each kink in the
+     trajectory. With linear timing the ball moves smoothly without the
+     repeated decelerations that previously read like "stops at each step."
+     Rotation is distributed by rolling distance (60 + 424.6 + 25 ≈ 510
+     units total for two full counter-clockwise turns). */
+
+  /* Edge of the top platform — about to descend the diagonal */
+  56%  { transform: translate3d(360px,-250px, 0) scale(0.8) rotate(-85deg);
+         animation-timing-function: linear; }
+  /* Bottom of the diagonal ramp — center (40, 297), still on slope */
+  95%  { transform: translate3d(0px,  -25px, 0) scale(0.8) rotate(-685deg);
+         animation-timing-function: linear; }
+  /* Settled on step 1 — center (40, 322), ready for the next breath */
+  100% { transform: translate3d(0px,    0px, 0) scale(0.8) rotate(-720deg); }
+}
+
+/* ─────────────────────────────── FOOTER ──────────────────────────────── */
+.exercise-footer {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 80px;
+}
+
+.phase-text {
+  position: relative;
+  height: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.phase-text span {
+  position: absolute;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(28px, 3.5vw, 40px);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0;
+  white-space: nowrap;
+  text-indent: 0.4em; /* compensate trailing letter-spacing visually */
+}
+.running .text-inhale {
+  animation: inhaleFade var(--cycle) ease-in-out infinite;
+}
+.running .text-exhale {
+  animation: exhaleFade var(--cycle) ease-in-out infinite;
+}
+
+@keyframes inhaleFade {
+  0%        { opacity: 0; letter-spacing: 0.2em;  transform: translateY(8px); }
+  10%, 42%  { opacity: 1; letter-spacing: 0.55em; transform: translateY(0); }
+  50%, 100% { opacity: 0; letter-spacing: 0.7em;  transform: translateY(-4px); }
+}
+@keyframes exhaleFade {
+  0%, 50%   { opacity: 0; letter-spacing: 0.7em;  transform: translateY(-4px); }
+  60%, 92%  { opacity: 1; letter-spacing: 0.45em; transform: translateY(0); }
+  100%      { opacity: 0; letter-spacing: 0.25em; transform: translateY(8px); }
+}
+
+.phase-hint {
+  display: none;
+}
+
+/* ───────────────────────────── RESPONSIVE ────────────────────────────── */
+@media (max-width: 640px) {
+  .orbit-ring { inset: -80px; }
+  .exercise-header { gap: 16px; }
+  #exercise-screen { padding: 32px 16px; }
+  .stage-frame { width: 96vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmos { animation: none; }
+  .shooting-star { display: none; }
+}
+</style>
+</head>
+<body>
+
+  <!-- Cosmic backdrop layers -->
+  <div class="cosmos"></div>
+  <div class="cosmos-pulse"></div>
+  <div class="stars-layer stars-layer-1"></div>
+  <div class="stars-layer stars-layer-2"></div>
+  <div class="stars-layer stars-layer-3"></div>
+  <div class="shooting-star"></div>
+
+  <!-- ─── START SCREEN ─── -->
+  <section id="start-screen" class="screen active">
+    <div class="start-content">
+      <div class="orbit-ring"></div>
+      <p class="overline">Guided Meditation</p>
+      <h1 class="title">Cosmic <em>Breath</em></h1>
+      <p class="subtitle">
+        Climb the stairway with each inhale.<br>
+        Descend gently with each exhale.
+      </p>
+      <button id="begin-btn" class="begin-btn" aria-label="Begin breathing exercise">
+        <span>Begin</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+          <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ─── EXERCISE SCREEN ─── -->
+  <section id="exercise-screen" class="screen">
+
+    <header class="exercise-header">
+      <!--
+        ─── RESPIRATION RATE DISPLAY ────────────────────────────────────────
+        Shows the live respiration rate (breaths per minute) read from the
+        Garmin watch. Starts as "—" and updates whenever
+          window.setRespirationRate(bpm)
+        is called from external code. See the script block at the bottom
+        of this file for the function definition and Garmin SDK wiring.
+        ─────────────────────────────────────────────────────────────────────
+      -->
+      <div class="respiration-rate" aria-live="polite">
+        <span class="rr-label">Respiration rate</span>
+        <span class="rr-sep">·</span>
+        <span class="rr-num" id="rr-number">—</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="stage-wrap">
+      <div class="stage-frame">
+        <div class="stage" id="stage">
+          <svg class="stairs-svg" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="platformGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stop-color="#a8d4ff" stop-opacity="0.55"/>
+                <stop offset="55%"  stop-color="#7eb1ff" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="#7eb1ff" stop-opacity="0"/>
+              </linearGradient>
+
+              <linearGradient id="topEdgeGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stop-color="#cce1ff" stop-opacity="0.5"/>
+                <stop offset="50%"  stop-color="#ffffff" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#cce1ff" stop-opacity="0.5"/>
+              </linearGradient>
+
+              <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2.2" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+
+            <!-- Ambient haze beneath — morphs between stair-stepped fill and a smooth ramp -->
+            <path class="surface-fill"
+              d="M -40,400 L -40,355 L 80,355 L 80,305 L 160,305 L 160,255 L 240,255 L 240,205 L 320,205 L 320,155 L 400,155 L 400,105 L 640,105 L 640,400 Z"
+              fill="url(#platformGrad)"
+              opacity="0.6"
+            />
+
+            <!-- Top edge — morphs between zigzag staircase and continuous diagonal slope -->
+            <path class="surface-edge"
+              d="M 0,350 L 80,350 L 80,300 L 160,300 L 160,250 L 240,250 L 240,200 L 320,200 L 320,150 L 400,150 L 400,100 L 600,100"
+              fill="none"
+              stroke="url(#topEdgeGrad)"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              filter="url(#softGlow)"
+            />
+
+            <!-- Stair-only details (risers + anchor pinpricks) — each pair
+                 fades out as its corresponding step flattens into the slope -->
+            <g class="stairs-only">
+              <g class="risers" stroke="rgba(126, 177, 255, 0.22)" stroke-width="0.6" stroke-dasharray="2 3">
+                <line class="riser riser-1" x1="80"  y1="300" x2="80"  y2="350"/>
+                <line class="riser riser-2" x1="160" y1="250" x2="160" y2="300"/>
+                <line class="riser riser-3" x1="240" y1="200" x2="240" y2="250"/>
+                <line class="riser riser-4" x1="320" y1="150" x2="320" y2="200"/>
+                <line class="riser riser-5" x1="400" y1="100" x2="400" y2="150"/>
+              </g>
+              <g class="dots" fill="#cce1ff" filter="url(#softGlow)">
+                <circle class="dot dot-1"   cx="40"  cy="350" r="0.8"/>
+                <circle class="dot dot-2"   cx="120" cy="300" r="0.8"/>
+                <circle class="dot dot-3"   cx="200" cy="250" r="0.8"/>
+                <circle class="dot dot-4"   cx="280" cy="200" r="0.8"/>
+                <circle class="dot dot-5"   cx="360" cy="150" r="0.8"/>
+                <circle class="dot dot-top" cx="500" cy="100" r="0.8"/>
+              </g>
+            </g>
+          </svg>
+
+          <div class="ball" id="ball"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="exercise-footer">
+      <div class="phase-text">
+        <span class="text-inhale">Inhale</span>
+        <span class="text-exhale">Exhale</span>
+      </div>
+    </footer>
+
+  </section>
+
+  <!-- ─── COMPLETE SCREEN ─── -->
+  <section id="complete-screen" class="screen">
+    <div class="complete-content">
+      <div class="orbit-ring"></div>
+      <p class="overline">Session Complete</p>
+      <h1 class="title">Well <em>done</em></h1>
+      <p class="subtitle">Thirty-three breaths of stillness.</p>
+    </div>
+  </section>
+
+<script>
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ░░  RESPIRATION RATE  ─  LIVE DATA FROM GARMIN WATCH  ░░
+   ══════════════════════════════════════════════════════════════════════════
+
+   The number shown in the header is meant to be DRIVEN BY LIVE DATA from
+   the Garmin watch — call `setRespirationRate(bpm)` whenever a new reading
+   arrives and the display updates immediately. The page initialises with
+   "—" (no reading yet) and stays that way until your data hook fires.
+
+   The function is exposed on the global scope, so any external script —
+   the Garmin Connect IQ / Health SDK, a Bluetooth bridge, a websocket
+   listener, a unit test — can call it directly:
+
+       window.setRespirationRate(bpm);
+
+   Pass any positive integer to display it; pass null, undefined, 0, or
+   anything non-numeric to reset the display back to "—".
+
+   ──── DEVELOPER ──── add your Garmin SDK subscription somewhere on this
+   page (or in an external script). Example pseudo-wiring:
+
+       garmin.respiration.subscribe(bpm => setRespirationRate(bpm));
+
+   ──── TESTING ──── from the browser console you can poke values to
+   confirm the display updates:
+
+       setRespirationRate(7);     // → shows 7
+       setRespirationRate(12);    // → shows 12
+       setRespirationRate(null);  // → resets to "—"
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function setRespirationRate(bpm) {
+  const rrNumber = document.getElementById('rr-number');
+  if (!rrNumber) return;
+  rrNumber.textContent = (typeof bpm === 'number' && bpm > 0) ? String(bpm) : '—';
+}
+
+/* ── ▼ TEMPORARY DEMO — REMOVE WHEN GARMIN IS WIRED ▼ ────────────────────
+   Until the live Garmin feed is connected, this block drives the
+   respiration-rate display with a plausible random walk (resting range
+   ~5-10 bpm, drifts gently every 3 seconds) so the number visibly
+   updates and you can see the wiring works. Replace the whole IIFE with
+   your real subscription:
+
+       garmin.respiration.subscribe(bpm => setRespirationRate(bpm));
+
+   ───────────────────────────────────────────────────────────────────── */
+(function simulateRespirationRate() {
+  let bpm = 8;
+  function tick() {
+    bpm += (Math.random() - 0.5) * 1.4;   // small random drift
+    bpm = Math.max(5, Math.min(10, bpm)); // clamp to a plausible range
+    setRespirationRate(Math.round(bpm));
+  }
+  tick();                       // first reading immediately
+  setInterval(tick, 3000);      // new reading every 3 s
+})();
+/* ── ▲ TEMPORARY DEMO — REMOVE WHEN GARMIN IS WIRED ▲ ────────────────── */
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ░░  INHALE & EXHALE DURATIONS  ─  URL-PARAMETERISED  ░░
+   ══════════════════════════════════════════════════════════════════════════
+
+   The CLIMB (inhale) and ROLL (exhale) take independent durations, so any
+   breathing rhythm can be tested with a refresh — no code edits.
+
+       ?inhale=4600&exhale=4600    →  4.6 s climb + 4.6 s roll   (~6.5 bpm)
+       ?inhale=5000&exhale=5000    →  default — 6.0 bpm
+       ?inhale=6000&exhale=4000    →  longer climb than roll    (6.0 bpm)
+       ?inhale=4000&exhale=8000    →  long exhale (calming)     (5.0 bpm)
+
+   Values are in MILLISECONDS, positive integers. Missing or invalid params
+   fall back to the defaults below.
+
+   ──── How it works ────
+   Every cycle-locked @keyframes — ballMotion, morphEdge, morphFill,
+   stairsOnlyFade, cosmosPulse, inhaleFade, exhaleFade — is RE-GENERATED on
+   page load with each keyframe percentage rescaled so the inhale/exhale
+   split lands exactly at  inhale ÷ (inhale + exhale)  of the cycle. The
+   CSS variable --cycle is set to  inhale + exhale, so percentages convert
+   back to real time correctly. The static @keyframes in the CSS above are
+   overridden by the <style id="dynamic-keyframes"> tag we inject here.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const DEFAULT_INHALE_MS = 5000;
+const DEFAULT_EXHALE_MS = 5000;
+
+// Original keyframes were authored with the inhale/exhale split at 51%.
+// rescalePct() maps any percentage onto the new split.
+const SPLIT = 51;
+function rescalePct(p, inhalePct) {
+  return p <= SPLIT
+    ? (p / SPLIT) * inhalePct
+    : inhalePct + ((p - SPLIT) / (100 - SPLIT)) * (100 - inhalePct);
+}
+
+// ─── BALL: bouncing climb + rolling descent ────────────────────────────────
+// Each entry: { p: percentage (with 51% split), t: transform, e?: easing }
+const BALL_FRAMES = [
+  /* INHALE: 5 bounces UP the staircase with squash-on-impact */
+  { p:   0, t: 'translate3d(0px,    0px, 0) scale(0.8) rotate(0deg)',          e: 'ease-out' },
+  { p:   5, t: 'translate3d(40px, -130px, 0) scale(0.8) rotate(0deg)',         e: 'ease-in'  },
+  { p:   9, t: 'translate3d(80px,  -50px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  10, t: 'translate3d(80px,  -45px, 0) scale(0.96, 0.65) rotate(0deg)',  e: 'ease-out' },
+  { p:  11, t: 'translate3d(80px,  -50px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  15, t: 'translate3d(120px,-180px, 0) scale(0.8) rotate(0deg)',         e: 'ease-in'  },
+  { p:  19, t: 'translate3d(160px,-100px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  20, t: 'translate3d(160px, -95px, 0) scale(0.96, 0.65) rotate(0deg)',  e: 'ease-out' },
+  { p:  21, t: 'translate3d(160px,-100px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  25, t: 'translate3d(200px,-230px, 0) scale(0.8) rotate(0deg)',         e: 'ease-in'  },
+  { p:  29, t: 'translate3d(240px,-150px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  30, t: 'translate3d(240px,-145px, 0) scale(0.96, 0.65) rotate(0deg)',  e: 'ease-out' },
+  { p:  31, t: 'translate3d(240px,-150px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  35, t: 'translate3d(280px,-280px, 0) scale(0.8) rotate(0deg)',         e: 'ease-in'  },
+  { p:  39, t: 'translate3d(320px,-200px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  40, t: 'translate3d(320px,-195px, 0) scale(0.96, 0.65) rotate(0deg)',  e: 'ease-out' },
+  { p:  41, t: 'translate3d(320px,-200px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  45, t: 'translate3d(370px,-310px, 0) scale(0.8) rotate(0deg)',         e: 'ease-in'  },
+  { p:  49, t: 'translate3d(420px,-250px, 0) scale(0.8) rotate(0deg)',         e: 'ease-out' },
+  { p:  50, t: 'translate3d(420px,-245px, 0) scale(0.96, 0.65) rotate(0deg)',  e: 'ease-out' },
+  { p:  51, t: 'translate3d(420px,-250px, 0) scale(0.8) rotate(0deg)',         e: 'linear'   },
+  /* EXHALE: one continuous roll DOWN the ramp at constant speed */
+  { p:  56, t: 'translate3d(360px,-250px, 0) scale(0.8) rotate(-85deg)',       e: 'linear'   },
+  { p:  95, t: 'translate3d(0px,   -25px, 0) scale(0.8) rotate(-685deg)',      e: 'linear'   },
+  { p: 100, t: 'translate3d(0px,    0px, 0) scale(0.8) rotate(-720deg)' },
+];
+
+// ─── SURFACE: stair ↔ slope morph paths ────────────────────────────────────
+const D_STAIR_EDGE = 'M 0,350 L 80,350 L 80,300 L 160,300 L 160,250 L 240,250 L 240,200 L 320,200 L 320,150 L 400,150 L 400,100 L 600,100';
+const D_SLOPE_EDGE = 'M 0,350 L 80,300 L 80,300 L 160,250 L 160,250 L 240,200 L 240,200 L 320,150 L 320,150 L 400,100 L 400,100 L 600,100';
+const D_STAIR_FILL = 'M -40,400 L -40,355 L 80,355 L 80,305 L 160,305 L 160,255 L 240,255 L 240,205 L 320,205 L 320,155 L 400,155 L 400,105 L 640,105 L 640,400 Z';
+const D_SLOPE_FILL = 'M -40,400 L -40,355 L 80,305 L 80,305 L 160,255 L 160,255 L 240,205 L 240,205 L 320,155 L 320,155 L 400,105 L 400,105 L 640,105 L 640,400 Z';
+
+const MORPH_EDGE_FRAMES = [
+  { p:   0, v: D_STAIR_EDGE },
+  { p:  50, v: D_STAIR_EDGE },
+  { p:  55, v: D_SLOPE_EDGE },
+  { p:  95, v: D_SLOPE_EDGE },
+  { p: 100, v: D_STAIR_EDGE },
+];
+
+const MORPH_FILL_FRAMES = [
+  { p:   0, v: D_STAIR_FILL },
+  { p:  50, v: D_STAIR_FILL },
+  { p:  55, v: D_SLOPE_FILL },
+  { p:  95, v: D_SLOPE_FILL },
+  { p: 100, v: D_STAIR_FILL },
+];
+
+// ─── Dashed risers / tread dots fade out while the slope is visible ───────
+const STAIRS_FADE_FRAMES = [
+  { p:   0, css: 'opacity: 1;' },
+  { p:  48, css: 'opacity: 1;' },
+  { p:  55, css: 'opacity: 0;' },
+  { p:  95, css: 'opacity: 0;' },
+  { p: 100, css: 'opacity: 1;' },
+];
+
+// ─── Background cosmos pulse: brightens at the breath peak ────────────────
+const COSMOS_PULSE_FRAMES = [
+  { p:   0, css: 'opacity: 0; transform: scale(0.9);'  },
+  { p:  50, css: 'opacity: 1; transform: scale(1.05);' },
+  { p: 100, css: 'opacity: 0; transform: scale(0.9);'  },
+];
+
+// ─── "Inhale" / "Exhale" text cues fade in & out per phase ────────────────
+const INHALE_TEXT_FRAMES = [
+  { p:   0, css: 'opacity: 0; letter-spacing: 0.2em;  transform: translateY(8px);'  },
+  { p:  10, css: 'opacity: 1; letter-spacing: 0.55em; transform: translateY(0);'    },
+  { p:  42, css: 'opacity: 1; letter-spacing: 0.55em; transform: translateY(0);'    },
+  { p:  50, css: 'opacity: 0; letter-spacing: 0.7em;  transform: translateY(-4px);' },
+  { p: 100, css: 'opacity: 0; letter-spacing: 0.7em;  transform: translateY(-4px);' },
+];
+
+const EXHALE_TEXT_FRAMES = [
+  { p:   0, css: 'opacity: 0; letter-spacing: 0.7em;  transform: translateY(-4px);' },
+  { p:  50, css: 'opacity: 0; letter-spacing: 0.7em;  transform: translateY(-4px);' },
+  { p:  60, css: 'opacity: 1; letter-spacing: 0.45em; transform: translateY(0);'    },
+  { p:  92, css: 'opacity: 1; letter-spacing: 0.45em; transform: translateY(0);'    },
+  { p: 100, css: 'opacity: 0; letter-spacing: 0.25em; transform: translateY(8px);'  },
+];
+
+// ─── Build one @keyframes block from a frames array ───────────────────────
+function buildKeyframes(name, frames, inhalePct, fmt) {
+  let css = `@keyframes ${name} {\n`;
+  for (const f of frames) {
+    const np = rescalePct(f.p, inhalePct).toFixed(3);
+    css += `  ${np}% { ${fmt(f)} }\n`;
+  }
+  css += '}\n';
+  return css;
+}
+
+function applyDurations(inhaleMs, exhaleMs) {
+  const total = inhaleMs + exhaleMs;
+  const inhalePct = (inhaleMs / total) * 100;
+
+  // The cycle CSS variable drives EVERY cycle-locked animation's duration
+  document.documentElement.style.setProperty('--cycle', `${total}ms`);
+
+  // Formatters per keyframe-data shape
+  const ballFmt = f => `transform: ${f.t};${f.e ? ` animation-timing-function: ${f.e};` : ''}`;
+  const pathFmt = f => `d: path("${f.v}");`;
+  const cssFmt  = f => f.css;
+
+  const css = [
+    buildKeyframes('ballMotion',     BALL_FRAMES,         inhalePct, ballFmt),
+    buildKeyframes('morphEdge',      MORPH_EDGE_FRAMES,   inhalePct, pathFmt),
+    buildKeyframes('morphFill',      MORPH_FILL_FRAMES,   inhalePct, pathFmt),
+    buildKeyframes('stairsOnlyFade', STAIRS_FADE_FRAMES,  inhalePct, cssFmt),
+    buildKeyframes('cosmosPulse',    COSMOS_PULSE_FRAMES, inhalePct, cssFmt),
+    buildKeyframes('inhaleFade',     INHALE_TEXT_FRAMES,  inhalePct, cssFmt),
+    buildKeyframes('exhaleFade',     EXHALE_TEXT_FRAMES,  inhalePct, cssFmt),
+  ].join('\n');
+
+  let styleEl = document.getElementById('dynamic-keyframes');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'dynamic-keyframes';
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = css;
+
+  // Stash on a global so other parts of the script (and tests) can read them
+  window.__SESSION_TIMING__ = { inhaleMs, exhaleMs, total, inhalePct };
+}
+
+// Read the URL once on load and apply.
+(function readUrlAndApply() {
+  const params = new URLSearchParams(window.location.search);
+  const inhale = parseInt(params.get('inhale'), 10);
+  const exhale = parseInt(params.get('exhale'), 10);
+  applyDurations(
+    Number.isFinite(inhale) && inhale > 0 ? inhale : DEFAULT_INHALE_MS,
+    Number.isFinite(exhale) && exhale > 0 ? exhale : DEFAULT_EXHALE_MS
+  );
+})();
+
+
+(() => {
+  const TOTAL_CYCLES = 33;
+
+  /* ─── Element refs ─── */
+  const startScreen    = document.getElementById('start-screen');
+  const exerciseScreen = document.getElementById('exercise-screen');
+  const completeScreen = document.getElementById('complete-screen');
+  const beginBtn       = document.getElementById('begin-btn');
+  const ball           = document.getElementById('ball');
+  const progressFill   = document.getElementById('progress-fill');
+  const stage          = document.getElementById('stage');
+  const stageFrame     = document.querySelector('.stage-frame');
+
+  /* ─── Star field generation ─── */
+  function generateStars() {
+    const layers = document.querySelectorAll('.stars-layer');
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const counts = [70, 50, 30];          // small, mid, large+blurred
+    const sizes  = [0,  0,  1];           // box-shadow spread
+    const blurs  = [0,  1,  2.5];
+
+    layers.forEach((layer, idx) => {
+      const count = counts[idx];
+      const spread = sizes[idx];
+      const blur = blurs[idx];
+      const shadows = [];
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        const op = Math.random() * 0.55 + 0.35;
+        // Subtle color variation: most white, a few warm or cool
+        const r = Math.random();
+        let color;
+        if (r < 0.82)      color = `rgba(255, 255, 255, ${op})`;
+        else if (r < 0.93) color = `rgba(255, 230, 190, ${op})`;
+        else               color = `rgba(190, 215, 255, ${op})`;
+        shadows.push(`${x.toFixed(1)}px ${y.toFixed(1)}px ${blur}px ${spread}px ${color}`);
+      }
+      layer.style.boxShadow = shadows.join(',');
+    });
+  }
+
+  /* ─── Stage scaling: keep absolute coords in 600×400 space ─── */
+  function resizeStage() {
+    const scaleX = stageFrame.clientWidth / 600;
+    const scaleY = stageFrame.clientHeight / 400;
+    const scale = Math.min(scaleX, scaleY);
+    stage.style.transform = `scale(${scale})`;
+  }
+
+  /* ─── Session state ─── */
+  let cycleCount = 0;
+
+  function updateProgress() {
+    const pct = (cycleCount / TOTAL_CYCLES) * 100;
+    progressFill.style.width = pct + '%';
+  }
+
+  function showScreen(el) {
+    [startScreen, exerciseScreen, completeScreen].forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function startExercise() {
+    cycleCount = 0;
+    updateProgress();
+    showScreen(exerciseScreen);
+    // Allow the screen fade-in to begin, then start the animation
+    // (also ensures any prior animation is reset by re-adding the class)
+    exerciseScreen.classList.remove('running');
+    void exerciseScreen.offsetWidth;     // force reflow
+    requestAnimationFrame(() => {
+      exerciseScreen.classList.add('running');
+    });
+  }
+
+  function completeExercise() {
+    exerciseScreen.classList.remove('running');
+    showScreen(completeScreen);
+  }
+
+  /* ─── Count cycles via animationiteration on the ball ─── */
+  ball.addEventListener('animationiteration', (e) => {
+    if (e.animationName !== 'ballMotion') return;
+    cycleCount++;
+    updateProgress();
+    if (cycleCount >= TOTAL_CYCLES) {
+      completeExercise();
+    }
+  });
+
+  /* ─── Wire up buttons ─── */
+  beginBtn.addEventListener('click', startExercise);
+
+  /* ─── Initialize ─── */
+  generateStars();
+  resizeStage();
+  window.addEventListener('resize', () => {
+    generateStars();
+    resizeStage();
+  });
+})();
+</script>
+
+</body>
+</html>
